@@ -122,14 +122,14 @@ class HexApiService:
                     "service_type_id": service_type_id,
                     "cities_only": "false",
                     "centers_only": "false"
-                },
-                verify=False
+                }
             )
 
             current_gdf = gpd.GeoDataFrame.from_features(response)
             result_gdf = pd.concat([result_gdf, current_gdf])
 
-        result_gdf.set_crs(4326, inplace=True)
+        if not result_gdf.empty:
+            result_gdf.set_crs(4326, inplace=True)
         return result_gdf
 
 
