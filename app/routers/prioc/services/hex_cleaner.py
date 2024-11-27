@@ -25,10 +25,10 @@ class HexCleaner:
             gpd.GeoDataFrame: cleaned hexes
         """
 
-        negative_services.to_crs(32636, inplace=True)
         if negative_services.empty:
             return hexagons
 
+        negative_services.to_crs(32636, inplace=True)
         negative_services["is_service"] = 1
         service_hexes = hexagons.sjoin(negative_services)
         service_hexes = service_hexes[service_hexes["is_service"] == 1].drop_duplicates("geometry")

@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from .dto import HexesDTO, TerritoryDTO
-from .services.prioc_service import prioc_service
+from .services import prioc_service
 
 
 prioc_router = APIRouter(prefix="/prioc", tags=["Priority object calculation"])

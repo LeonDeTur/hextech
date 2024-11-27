@@ -11,3 +11,4 @@ geopandas~=1.0.1
 hdbscan~=0.8.40
 networkx~=3.4.2
 gunicorn~=23.0.0
+pytest~=8.3.3
