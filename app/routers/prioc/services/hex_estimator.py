@@ -41,7 +41,7 @@ class HexEstimator:
             gpd.GeoDataFrame: GeoDataFrame with weighted hexagons
         """
 
-        hexagons["weighted_estimation"] = None
+        hexagons["weighted_sum"] = None
         indicators_names = list(INDICATORS_WEIGHTS.json[service_name].keys())
         ranks = INDICATORS_WEIGHTS.json[service_name]
         n = len(ranks)
@@ -56,7 +56,7 @@ class HexEstimator:
                     weight = weights[indicator_name]
                     score = row[indicator_name]
                     total_score += score * weight
-                    hexagons.at[index, 'weighted_sum'] = total_score
+                    hexagons.at[index, "weighted_sum"] = total_score
 
         return hexagons
 
@@ -75,7 +75,7 @@ class HexEstimator:
         """
 
         grouped = gpd.GeoDataFrame()
-        for cluster in clustered_hexagons.cluster:
+        for cluster in list(clustered_hexagons.cluster.unique()):
             tmp_gdf = clustered_hexagons[clustered_hexagons.cluster == cluster]
             G = nx.Graph()
             for i, poly in enumerate(tmp_gdf["geometry"]):
@@ -84,9 +84,10 @@ class HexEstimator:
                         G.add_edge(i, j)
 
             components = list(nx.connected_components(G))
-            largest_component = max(components, key=len)
-            largest_geometries = tmp_gdf.iloc[list(largest_component)]
-            grouped = pd.concat([grouped, largest_geometries])
+            if components:
+                largest_component = max(components, key=len)
+                largest_geometries = tmp_gdf.iloc[list(largest_component)]
+                grouped = pd.concat([grouped, largest_geometries])
 
         dissolved = grouped.dissolve(by=["cluster"], aggfunc="mean")
         dissolved.drop(columns=["X", "Y"], inplace=True)
