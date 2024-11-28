@@ -4,12 +4,12 @@ import statistics
 from shapely.geometry import shape
 import geopandas as gpd
 
-from app.routers.prioc.services.hex_api_service import hex_api_getter
-from app.routers.prioc.services.hex_cleaner import hex_cleaner
-from app.routers.prioc.services.hex_estimator import hex_estimator
-from app.routers.prioc.services.territory_estimator import territory_estimator
-from app.routers.prioc.services import prioc_service
-from app.routers.prioc.dto import HexesDTO, TerritoryDTO
+from app.prioc import hex_api_getter
+from app.prioc.services.hex_cleaner import hex_cleaner
+from app.prioc.services.hex_estimator import hex_estimator
+from app.prioc import territory_estimator
+from app.prioc import prioc_service
+from app.prioc.dto import HexesDTO, TerritoryDTO
 from app.common.geometries import example_territory
 
 

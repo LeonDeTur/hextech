@@ -3,8 +3,8 @@ import asyncio
 import geopandas as gpd
 from shapely.geometry import shape
 
-from app.routers.prioc.dto.hexes_dto import HexesDTO
-from app.routers.prioc.dto.territory_dto import TerritoryDTO
+from app.prioc.dto.hexes_dto import HexesDTO
+from app.prioc.dto.territory_dto import TerritoryDTO
 from .hex_api_service import  hex_api_getter
 from .hex_cleaner import hex_cleaner
 from .hex_estimator import hex_estimator

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from .common.config import config
-from .routers import prioc_router
+from .prioc import prioc_router
 
 
 logger.remove()
