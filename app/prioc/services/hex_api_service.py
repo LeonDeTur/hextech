@@ -128,9 +128,12 @@ class HexApiService:
             current_gdf = gpd.GeoDataFrame.from_features(response)
             result_gdf = pd.concat([result_gdf, current_gdf])
 
-        if not result_gdf.empty:
-            result_gdf.set_crs(4326, inplace=True)
-        return result_gdf
+        if isinstance(result_gdf, gpd.GeoDataFrame):
+            if not result_gdf.empty:
+                result_gdf.set_crs(4326, inplace=True)
+            return result_gdf
+        else:
+            return gpd.GeoDataFrame(geometry=[None], crs=4326)
 
 
 hex_api_getter = HexApiService()

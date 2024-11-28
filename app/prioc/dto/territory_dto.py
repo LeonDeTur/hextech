@@ -4,7 +4,8 @@ from pydantic import BaseModel, Field
 
 from app.common.geometries import Geometry
 
-with open("app/routers/prioc/dto/example_territory.json", "r") as et:
+
+with open("app/prioc/dto/example_territory.json", "r") as et:
     example_territory = json.load(et)
 
 

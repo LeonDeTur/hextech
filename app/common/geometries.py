@@ -6,7 +6,7 @@ import shapely.geometry as geom
 from pydantic import BaseModel, Field
 
 
-with open("app/routers/prioc/dto/example_territory.json", "r") as et:
+with open("app/prioc/dto/example_territory.json", "r") as et:
     example_territory = json.load(et)
 
 

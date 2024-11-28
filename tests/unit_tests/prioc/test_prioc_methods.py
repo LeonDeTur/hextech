@@ -1,14 +1,15 @@
 import pytest
 import statistics
 
+from fastapi import HTTPException
 from shapely.geometry import shape
 import geopandas as gpd
 
-from app.prioc import hex_api_getter
+from app.prioc.services.hex_api_service import hex_api_getter
 from app.prioc.services.hex_cleaner import hex_cleaner
 from app.prioc.services.hex_estimator import hex_estimator
-from app.prioc import territory_estimator
-from app.prioc import prioc_service
+from app.prioc.services.territory_estimator import territory_estimator
+from app.prioc.services.prioc_service import prioc_service
 from app.prioc.dto import HexesDTO, TerritoryDTO
 from app.common.geometries import example_territory
 
@@ -17,6 +18,14 @@ from app.common.geometries import example_territory
 async def test_get_hexes_with_indicators_by_territory():
     hexes = await hex_api_getter.get_hexes_with_indicators_by_territory(1)
     assert len(hexes) == 2148
+
+@pytest.mark.asyncio
+async def test_exception_get_hexes_with_indicators_by_territory():
+    try:
+        await hex_api_getter.get_hexes_with_indicators_by_territory(-1)
+        assert False
+    except:
+        assert True
 
 @pytest.mark.asyncio
 async def test_():
@@ -54,7 +63,7 @@ async def test_positive_clean():
         territory_id=1,
         service_type_ids=[6]
     )
-    cleaned = await hex_cleaner.negative_clean(hexes, positive_services)
+    cleaned = await hex_cleaner.positive_clean(hexes, positive_services)
     assert len(cleaned) == len(hexes)
 
 @pytest.mark.asyncio
