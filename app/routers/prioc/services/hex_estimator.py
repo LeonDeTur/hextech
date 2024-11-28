@@ -60,6 +60,7 @@ class HexEstimator:
 
         return hexagons
 
+    # ToDo rewrite and make faster
     @staticmethod
     async def clarify_clusters(
             clustered_hexagons: gpd.GeoDataFrame
