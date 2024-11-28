@@ -35,7 +35,7 @@ async def get_hexes_clusters(
 
 @prioc_router.post("/territory")
 async def get_territory_value(
-        territory_params: TerritoryDTO = Depends(TerritoryDTO.as_form),
+        territory_params: Annotated[TerritoryDTO, Depends(TerritoryDTO)],
 ) -> dict:
     """
     Calculate possible priority objects allocation

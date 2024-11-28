@@ -1,19 +1,14 @@
+import json
+
 from pydantic import BaseModel, Field
-from pydantic_geojson import PolygonModel
+
+from app.common.geometries import Geometry
+
+with open("app/routers/prioc/dto/example_territory.json", "r") as et:
+    example_territory = json.load(et)
 
 
 class TerritoryDTO(BaseModel):
 
-    territory_id: int = Field(..., description="The id of the territory")
-    territory: PolygonModel
-
-    @classmethod
-    def as_form(
-            cls,
-            territory_id: int,
-            territory: PolygonModel,
-    ) -> "TerritoryDTO":
-        return TerritoryDTO(
-            territory_id=territory_id,
-            territory=territory,
-        )
+    territory_id: int = Field(..., examples=[1], description="The id of the territory")
+    territory: Geometry = Field(..., examples=[example_territory], description="The territory polygon")
