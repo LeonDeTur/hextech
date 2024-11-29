@@ -38,6 +38,14 @@ async def test_get_positive_service_by_territory_id():
     assert len(positive_services) == 0
 
 @pytest.mark.asyncio
+async def test_not_none_positive_service_by_territory_id():
+    positive_services = await hex_api_getter.get_positive_service_by_territory_id(
+        territory_id=1,
+        service_type_ids=[112]
+    )
+    assert len(positive_services) > 0
+
+@pytest.mark.asyncio
 async def test_get_negative_service_by_territory_id():
     negative_services = await hex_api_getter.get_negative_service_by_territory_id(
         territory_id=1,
@@ -60,7 +68,17 @@ async def test_negative_clean():
     assert len(cleaned) < len(hexes)
 
 @pytest.mark.asyncio
-async def test_positive_clean():
+async def test_negative_empty_clean():
+    hexes = await hex_api_getter.get_hexes_with_indicators_by_territory(1)
+    negative_services = gpd.GeoDataFrame()
+    cleaned = await hex_cleaner.negative_clean(
+        hexes,
+        negative_services
+    )
+    assert len(cleaned) == len(hexes)
+
+@pytest.mark.asyncio
+async def test_positive_empty_clean():
     hexes = await hex_api_getter.get_hexes_with_indicators_by_territory(1)
     positive_services = await hex_api_getter.get_positive_service_by_territory_id(
         territory_id=1,
@@ -69,6 +87,37 @@ async def test_positive_clean():
     print(positive_services)
     cleaned = await hex_cleaner.positive_clean(hexes, positive_services)
     assert len(cleaned) == len(hexes)
+
+@pytest.mark.asyncio
+async def test_positive_clean():
+    hexes = await hex_api_getter.get_hexes_with_indicators_by_territory(1)
+    positive_services = await hex_api_getter.get_positive_service_by_territory_id(
+        territory_id=1,
+        service_type_ids=[112, 143]
+    )
+    print(positive_services.columns)
+    cleaned = await hex_cleaner.positive_clean(hexes, positive_services)
+    assert len(cleaned) < len(hexes)
+
+@pytest.mark.asyncio
+async def test_clean_estimation_dict_by_territory():
+    territory = gpd.GeoDataFrame(geometry=[shape(example_territory)], crs=4326)
+    positive_services = territory.copy()
+    negative_services = territory.copy()
+    positive = await hex_cleaner.clean_estimation_dict_by_territory(
+        territory=territory,
+        positive_services=positive_services,
+        negative_services=None,
+    )
+    negative = await hex_cleaner.clean_estimation_dict_by_territory(
+        territory=territory,
+        positive_services=None,
+        negative_services=negative_services,
+    )
+    print(positive)
+    print(negative)
+    assert positive == True
+    assert negative == True
 
 @pytest.mark.asyncio
 async def test_weight_hexes():
@@ -121,6 +170,16 @@ async def test_get_hexes_for_object():
     assert len(result) == 39
 
 @pytest.mark.asyncio
+async def test_get_hexes_for_object_positive_services():
+    test_hex_dto = HexesDTO(
+        territory_id=1,
+        object_type="Порт"
+    )
+
+    result = await prioc_service.get_hexes_for_object(test_hex_dto)
+    assert len(result) == 351
+
+@pytest.mark.asyncio
 async def test_get_hex_clusters_for_object():
     test_hex_dto = HexesDTO(
         territory_id=1,
@@ -143,8 +202,13 @@ async def test_get_territory_estimation():
         ),
         2
     )
-    assert mean == 0.92
+    assert mean == 1.02
 
-# @pytest.mark.asyncio
-# async def test_get():
-#     result = await urban_api_handler
+@pytest.mark.asyncio
+async def test_get():
+    try:
+        url = "/api/v1/territory/geojson?territory_id=-1"
+        await urban_api_handler.get(url, params={})
+        assert False
+    except HTTPException as e:
+        assert e.status_code == 422

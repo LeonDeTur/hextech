@@ -41,22 +41,24 @@ class PriocService:
                 hex_params.territory_id,
                 positive_services_list,
             )
-            positive_services.to_crs(hexes_local_crs, inplace=True)
-            cleaned_hexes = await hex_cleaner.positive_clean(
-                cleaned_hexes,
-                positive_services
-            )
+            if not positive_services.empty:
+                positive_services.to_crs(hexes_local_crs, inplace=True)
+                cleaned_hexes = await hex_cleaner.positive_clean(
+                    cleaned_hexes,
+                    positive_services
+                )
         negative_services_list = NEGATIVE_SERVICE_CLEANING.json.get(hex_params.object_type)
         if negative_services_list:
             negative_services = await hex_api_getter.get_negative_service_by_territory_id(
                 hex_params.territory_id,
                 negative_services_list
             )
-            negative_services.to_crs(hexes_local_crs, inplace=True)
-            cleaned_hexes = await hex_cleaner.negative_clean(
-                hexes,
-                negative_services
-            )
+            if not negative_services.empty:
+                negative_services.to_crs(hexes_local_crs, inplace=True)
+                cleaned_hexes = await hex_cleaner.negative_clean(
+                    hexes,
+                    negative_services
+                )
         cleaned_hexes = await asyncio.to_thread(
             hex_cleaner.clean_by_min_object_val,
             hexagons=cleaned_hexes,

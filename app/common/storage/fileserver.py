@@ -26,10 +26,6 @@ class DataGetter:
 
     @staticmethod
     def get_pickle(object_name: str, received_bytes: io.BytesIO | None) -> DataFrame:
-        if received_bytes is None:
-            received_df = pd.read_pickle(caching_service.cache_path / caching_service.get_cached_file_name(object_name))
-            logger.info(f"Loaded pickle from cache - {caching_service.get_cached_file_name(object_name)}")
-            return received_df
 
         caching_service.save(CacheableBytes(received_bytes), object_name, datetime.now())
         received_df = pd.read_pickle(received_bytes)
@@ -38,13 +34,6 @@ class DataGetter:
 
     @staticmethod
     def get_json(object_name: str, received_bytes: io.BytesIO | None) -> dict:
-        if received_bytes is None:
-            with io.open(
-                    caching_service.cache_path / caching_service.get_cached_file_name(object_name), encoding="utf-8"
-            ) as fin:
-                received_json = json.load(fin)
-                logger.info(f"Loaded json from cache - {caching_service.get_cached_file_name(object_name)}")
-                return received_json
 
         caching_service.save(CacheableBytes(received_bytes), object_name, datetime.now())
         received_json = json.load(received_bytes)
@@ -82,11 +71,6 @@ class DataGetter:
                 bucket_name=bucket_name,
                 object_name=object_name
             ).data)
-
-            # Delete existing cache to replace with a new one
-            if existing_file_date != "":
-                logger.info(f"Deleting existing cache - {caching_service.get_cached_file_name(object_name)}")
-                Path.unlink(caching_service.cache_path / caching_service.get_cached_file_name(object_name))
 
             return received_bytes
         return None

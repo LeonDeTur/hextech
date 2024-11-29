@@ -2,7 +2,6 @@ import io
 
 from geopandas import GeoDataFrame
 from loguru import logger
-from pyproj import CRS
 
 from app.common.storage.fileserver import DataGetter
 from app.common.storage.interfaces.disposable_interface import IDisposable

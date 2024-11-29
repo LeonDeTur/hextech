@@ -61,7 +61,7 @@ class HexCleaner:
         if positive_objects.empty:
             return hexagons
         cleaned_hexes = gpd.sjoin(positive_objects, hexagons, how='right')
-        cleaned_hexes.dropna(subset="type_name", inplace=True)
+        cleaned_hexes.dropna(subset="service_id", inplace=True)
 
         return cleaned_hexes
 
@@ -86,12 +86,14 @@ class HexCleaner:
         if isinstance(positive_services, gpd.GeoDataFrame):
             positive_services["is_service"] = 1
             check = territory.sjoin(positive_services)
-            if not check[check["is_service"] == 1].empty:
+            print(check.columns)
+            if "is_service" in list(check.columns):
                 return True
         if isinstance(negative_services, gpd.GeoDataFrame):
             negative_services["is_service"] = 1
             check = territory.sjoin(negative_services)
-            if not check[check["is_service"] == 1].empty:
+            print(check.columns)
+            if "is_service" in list(check.columns):
                 return True
         return False
 

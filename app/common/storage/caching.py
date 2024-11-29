@@ -39,27 +39,4 @@ class CachingService:
         file_creation_date = file.split("_")[0]
         return file_creation_date
 
-    def retrieve_cached_file(self, pattern: str, ext: str, *args) -> str:
-        """
-        Get filename of the most recent file created of such type
-
-        :param pattern: rather a name of a file
-        :param ext: extension of a file
-        :param args: specification for a file to distinguish between
-
-        :return: filename of the most recent file created of such type if it's in the span of actuality
-        """
-        files = [file.name for file in self.cache_path.glob(f"*{pattern}{''.join([f'_{arg}' for arg in args])}{ext}")]
-        files.sort(reverse=True)
-        actual_filename: str = ""
-        for file in files:
-            broken_filename = file.split('_')
-            date = datetime.strptime(broken_filename[0], "%Y-%m-%d-%H-%M-%S")
-            hours_diff = (datetime.now() - date).total_seconds() // 3600
-            if hours_diff < self.cache_actuality_hours:
-                actual_filename = file
-                print(f"Found cached file - {actual_filename}")
-                break
-        return actual_filename
-
 caching_service = CachingService(Path().absolute() / config.get("CACHE_NAME"))
