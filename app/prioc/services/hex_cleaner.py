@@ -58,6 +58,8 @@ class HexCleaner:
             gpd.GeoDataFrame: cleaned hexes
         """
 
+        if positive_objects.empty:
+            return hexagons
         cleaned_hexes = gpd.sjoin(positive_objects, hexagons, how='right')
         cleaned_hexes.dropna(subset="type_name", inplace=True)
 

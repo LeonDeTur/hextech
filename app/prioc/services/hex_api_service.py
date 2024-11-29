@@ -132,8 +132,8 @@ class HexApiService:
             if not result_gdf.empty:
                 result_gdf.set_crs(4326, inplace=True)
             return result_gdf
-        else:
-            return gpd.GeoDataFrame(geometry=[None], crs=4326)
+        result_gdf = gpd.GeoDataFrame()
+        return result_gdf
 
 
 hex_api_getter = HexApiService()

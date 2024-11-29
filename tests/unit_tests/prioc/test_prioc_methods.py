@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from shapely.geometry import shape
 import geopandas as gpd
 
+from app.common import urban_api_handler, config
 from app.prioc.services.hex_api_service import hex_api_getter
 from app.prioc.services.hex_cleaner import hex_cleaner
 from app.prioc.services.hex_estimator import hex_estimator
@@ -17,6 +18,7 @@ from app.common.geometries import example_territory
 @pytest.mark.asyncio
 async def test_get_hexes_with_indicators_by_territory():
     hexes = await hex_api_getter.get_hexes_with_indicators_by_territory(1)
+    assert isinstance(hexes, gpd.GeoDataFrame)
     assert len(hexes) == 2148
 
 @pytest.mark.asyncio
@@ -28,7 +30,7 @@ async def test_exception_get_hexes_with_indicators_by_territory():
         assert True
 
 @pytest.mark.asyncio
-async def test_():
+async def test_get_positive_service_by_territory_id():
     positive_services = await hex_api_getter.get_positive_service_by_territory_id(
         territory_id=1,
         service_type_ids=[6]
@@ -50,6 +52,7 @@ async def test_negative_clean():
         territory_id=1,
         service_type_ids=[112, 143]
     )
+    print(len(negative_services), hexes.crs, negative_services.crs)
     cleaned = await hex_cleaner.negative_clean(
         hexes,
         negative_services
@@ -63,6 +66,7 @@ async def test_positive_clean():
         territory_id=1,
         service_type_ids=[6]
     )
+    print(positive_services)
     cleaned = await hex_cleaner.positive_clean(hexes, positive_services)
     assert len(cleaned) == len(hexes)
 
@@ -96,7 +100,6 @@ async def test_cluster_hexes():
 async def test_estimate_territory():
     hexes = await hex_api_getter.get_hexes_with_indicators_by_territory(1)
     territory = gpd.GeoDataFrame(geometry=[shape(example_territory)], crs=4326)
-    territory.to_crs(32636, inplace=True)
     territory_hexagons = hexes.clip(territory.geometry)
     result = await territory_estimator.estimate_territory(territory_hexagons)
     mean = round(
@@ -141,3 +144,7 @@ async def test_get_territory_estimation():
         2
     )
     assert mean == 0.92
+
+# @pytest.mark.asyncio
+# async def test_get():
+#     result = await urban_api_handler

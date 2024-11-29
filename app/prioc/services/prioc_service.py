@@ -126,7 +126,10 @@ class PriocService:
                     territory_params.territory_id,
                     positive_services_ids
                 )
-                positive_services.to_crs(territory_local_crs, inplace=True)
+                if not positive_services.empty:
+                    positive_services.to_crs(territory_local_crs, inplace=True)
+                else:
+                    positive_services = None
             else:
                 positive_services = None
             if negative_services_ids:
@@ -134,7 +137,10 @@ class PriocService:
                     territory_params.territory_id,
                     negative_services_ids
                 )
-                negative_services.to_crs(territory_local_crs, inplace=True)
+                if not negative_services.empty:
+                    negative_services.to_crs(territory_local_crs, inplace=True)
+                else:
+                    negative_services = None
             else:
                 negative_services = None
 
