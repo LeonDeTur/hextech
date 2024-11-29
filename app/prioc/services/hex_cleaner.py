@@ -28,7 +28,6 @@ class HexCleaner:
         if negative_services.empty:
             return hexagons
 
-        negative_services.to_crs(32636, inplace=True)
         negative_services["is_service"] = 1
         service_hexes = hexagons.sjoin(negative_services)
         service_hexes = service_hexes[service_hexes["is_service"] == 1].drop_duplicates("geometry")
@@ -83,13 +82,11 @@ class HexCleaner:
         """
 
         if isinstance(positive_services, gpd.GeoDataFrame):
-            positive_services.to_crs(32636, inplace=True)
             positive_services["is_service"] = 1
             check = territory.sjoin(positive_services)
             if not check[check["is_service"] == 1].empty:
                 return True
         if isinstance(negative_services, gpd.GeoDataFrame):
-            negative_services.to_crs(32636, inplace=True)
             negative_services["is_service"] = 1
             check = territory.sjoin(negative_services)
             if not check[check["is_service"] == 1].empty:

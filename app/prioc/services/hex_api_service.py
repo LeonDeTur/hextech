@@ -46,7 +46,7 @@ class HexApiService:
             territory_id (integer): Territory ID
 
         Returns:
-            gpd.GeoDataFrame: Hexagons with indicators values as layers attributes
+            gpd.GeoDataFrame: Hexagons with indicators values as layers attributes in 4326 crs
         """
 
         if territory_id != 1:

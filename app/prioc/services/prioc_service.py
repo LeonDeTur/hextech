@@ -32,6 +32,8 @@ class PriocService:
         hexes = await hex_api_getter.get_hexes_with_indicators_by_territory(
             hex_params.territory_id
         )
+        hexes_local_crs = hexes.estimate_utm_crs()
+        hexes.to_crs(hexes_local_crs, inplace=True)
         positive_services_list = POSITIVE_SERVICE_CLEANING.json.get(hex_params.object_type)
         cleaned_hexes = hexes
         if positive_services_list:
@@ -39,6 +41,7 @@ class PriocService:
                 hex_params.territory_id,
                 positive_services_list,
             )
+            positive_services.to_crs(hexes_local_crs, inplace=True)
             cleaned_hexes = await hex_cleaner.positive_clean(
                 cleaned_hexes,
                 positive_services
@@ -49,7 +52,7 @@ class PriocService:
                 hex_params.territory_id,
                 negative_services_list
             )
-
+            negative_services.to_crs(hexes_local_crs, inplace=True)
             cleaned_hexes = await hex_cleaner.negative_clean(
                 hexes,
                 negative_services
@@ -104,10 +107,12 @@ class PriocService:
             dict: Dictionary with calculated territory values
         """
         territory = gpd.GeoDataFrame([1], geometry=[shape(territory_params.territory.model_dump())], crs=4326)
-        territory.to_crs(32636, inplace=True)
+        territory_local_crs = territory.estimate_utm_crs()
+        territory.to_crs(territory_local_crs, inplace=True)
         hexagons = await hex_api_getter.get_hexes_with_indicators_by_territory(
             territory_params.territory_id
         )
+        hexagons.to_crs(territory_local_crs, inplace=True)
         hexagons = hexagons.clip(territory.geometry)
         territory_estimation = await territory_estimator.estimate_territory(
             hexagons
@@ -121,6 +126,7 @@ class PriocService:
                     territory_params.territory_id,
                     positive_services_ids
                 )
+                positive_services.to_crs(territory_local_crs, inplace=True)
             else:
                 positive_services = None
             if negative_services_ids:
@@ -128,6 +134,7 @@ class PriocService:
                     territory_params.territory_id,
                     negative_services_ids
                 )
+                negative_services.to_crs(territory_local_crs, inplace=True)
             else:
                 negative_services = None
 

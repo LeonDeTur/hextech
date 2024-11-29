@@ -49,12 +49,12 @@ class AsyncApiHandler:
             ) as response:
                 if response.status == 200:
                     return await response.json()
-                else:
-                    additional_info = await response.json()
-                    raise http_exception(
-                        response.status,
-                        "Error during extracting query",
-                        additional_info)
+                additional_info = await response.json()
+                raise http_exception(
+                    response.status,
+                    "Error during extracting query",
+                    additional_info
+                )
 
 
 urban_api_handler = AsyncApiHandler(config.get("URBAN_API"))

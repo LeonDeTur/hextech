@@ -117,6 +117,7 @@ class HexEstimator:
         X = np.hstack([weighted_hexagons[["X", "Y", "weighted_sum"]].values])
         weighted_hexagons["cluster"] = await asyncio.to_thread(self.clusterer.fit_predict, X=X)
         united_clusters = await self.clarify_clusters(weighted_hexagons)
+        united_clusters.to_crs(4326, inplace=True)
         return united_clusters
 
 
