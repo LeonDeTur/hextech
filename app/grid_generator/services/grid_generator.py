@@ -27,3 +27,5 @@ class GridGenerator:
         geometries = [shape(h3.cells_to_geo([cell])) for cell in cells]
         result = gpd.GeoDataFrame(geometry=geometries, crs=territory.crs)
         return result
+
+grid_generator = GridGenerator()
