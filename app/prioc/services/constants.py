@@ -1,5 +1,3 @@
-from distutils.command.config import config
-
 from app.common.config.config import config
 from app.common.storage.implementations.disposable_gdf import DisposableTerritoryGDF
 from app.common.storage.implementations.disposable_json import DisposableJSON

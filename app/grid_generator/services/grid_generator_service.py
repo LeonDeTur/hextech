@@ -15,7 +15,7 @@ class GridGeneratorService:
     @staticmethod
     async def get_cleaning_gdf(
             territory_id: int,
-            objects_ids: list[int]
+            objects_ids: dict
     ) -> gpd.GeoDataFrame:
         """
         Function retrieves geometries to clean hexagons
@@ -35,6 +35,22 @@ class GridGeneratorService:
 
         result = pd.concat(physical_obj)
         return result
+
+    @staticmethod
+    async def get_eco_frame_marks_list(
+            territory_id: int,
+            json_hexes: gpd.GeoDataFrame,
+    ) -> list[int]:
+        features_list = json_hexes['features']
+        res_list = []
+        for feature in features_list:
+            mark_val = await generator_api_service.get_ecological_evaluation(
+                territory_id=territory_id,
+                json_data=feature["geometry"],
+            )
+            res_list.append(mark_val)
+        return res_list
+
 
     @staticmethod
     async def save_new_hexagons(
@@ -85,8 +101,8 @@ class GridGeneratorService:
         return grid
 
     # ToDo Implement api calculations for indicators
-    @staticmethod
     async def calculate_grid_indicators(
+            self,
             grid: gpd.GeoDataFrame,
             territory_id: int,
     ) -> gpd.GeoDataFrame:
@@ -117,7 +133,7 @@ class GridGeneratorService:
             territory_id,
             feature_collection_grid
         )
-        ecology = await generator_api_service.get_ecology_evaluation(
+        ecology = await self.get_eco_frame_marks_list(
             territory_id,
             feature_collection_grid
         )
@@ -141,6 +157,11 @@ class GridGeneratorService:
 
         grid[columns] = indicators_data
         return grid
+
+    @staticmethod
+    async def evaluate_potentials(
+
+    ):
 
     async def generate_grid_with_indicators_to_db(
             self,

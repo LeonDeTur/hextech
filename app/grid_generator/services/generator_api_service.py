@@ -1,5 +1,10 @@
 from app.common import urban_api_handler
-from app.common.api_handler.api_handler import transport_frame_api_handler, townsnet_api_handler
+from app.common.api_handler.api_handler import (
+    transport_frame_api_handler,
+    townsnet_api_handler,
+    eco_frame_api_handler,
+    pop_frame_api_handler
+)
 
 
 class GeneratorApiService:
@@ -14,6 +19,8 @@ class GeneratorApiService:
         self.urban_extractor = urban_api_handler
         self.townsnet_extractor = townsnet_api_handler
         self.transport_frame_extractor = transport_frame_api_handler
+        self.pop_frame_extractor = pop_frame_api_handler
+        self.eco_frame_extractor = eco_frame_api_handler
 
     async def get_territory_data(
             self, territory_id: int
@@ -135,12 +142,14 @@ class GeneratorApiService:
             dict | list: Evaluated data
         """
 
-        pass
-        # response = await self.townsnet_extractor.post(
-        #     extra_url=f"/ecology/{territory_id}/evaluate_geojson",
-        #     data=json_data
-        # )
-        # return response
+        response = await self.eco_frame_extractor.post(
+            extra_url=f"/ecoframe/eco_mark",
+            params={
+                "region_id": territory_id,
+            },
+            data=json_data
+        )
+        return response
 
     async def get_population_evaluation(
             self,
@@ -157,12 +166,12 @@ class GeneratorApiService:
             dict | list: Evaluated data
         """
 
-        pass
-        # response = await self.townsnet_extractor.post(
-        #     extra_url=f"/population/{territory_id}/evaluate",
-        #     data=json_data
-        # )
-        # return response
+        response = await self.pop_frame_extractor.post(
+            extra_url=f"/population/{territory_id}/evaluate",
+            headers=townsnet_api_handler.bearer_token,
+            data=json_data
+        )
+        return response
 
     async def get_hexes_from_db(
             self,
@@ -178,7 +187,7 @@ class GeneratorApiService:
         response = await self.urban_extractor.get(
             extra_url=f"{self.territory}/{territory_id}/hexagons",
             params={
-                "centers_only": False
+                "centers_only": True
             }
         )
         return response
