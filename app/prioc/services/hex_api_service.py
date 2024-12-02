@@ -53,7 +53,8 @@ class HexApiService:
             raise http_exception(
                 501,
                 "Other territories not supported for now",
-                territory_id
+                _input=territory_id,
+                _detail="Only territory_id = 1 implemented"
             )
 
         LO_HEXES.try_init(bucket_name, lo_hexes_filename)

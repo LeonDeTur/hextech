@@ -53,7 +53,11 @@ class AsyncApiHandler:
                 raise http_exception(
                     response.status,
                     "Error during extracting query",
-                    additional_info
+                    _input={
+                        "url": endpoint_irl,
+                        "params": params
+                    },
+                    _detail=additional_info
                 )
 
 
