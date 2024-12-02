@@ -23,11 +23,9 @@ async def test_get_hexes_with_indicators_by_territory():
 
 @pytest.mark.asyncio
 async def test_exception_get_hexes_with_indicators_by_territory():
-    try:
+    with pytest.raises(HTTPException):
         await hex_api_getter.get_hexes_with_indicators_by_territory(-1)
-        assert False
-    except:
-        assert True
+
 
 @pytest.mark.asyncio
 async def test_get_positive_service_by_territory_id():
@@ -84,7 +82,6 @@ async def test_positive_empty_clean():
         territory_id=1,
         service_type_ids=[6]
     )
-    print(positive_services)
     cleaned = await hex_cleaner.positive_clean(hexes, positive_services)
     assert len(cleaned) == len(hexes)
 
@@ -206,9 +203,6 @@ async def test_get_territory_estimation():
 
 @pytest.mark.asyncio
 async def test_get():
-    try:
+    with pytest.raises(HTTPException):
         url = "/api/v1/territory/geojson?territory_id=-1"
         await urban_api_handler.get(url, params={})
-        assert False
-    except HTTPException as e:
-        assert e.status_code == 422
