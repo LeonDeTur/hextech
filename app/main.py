@@ -5,6 +5,7 @@ from loguru import logger
 
 from .common.config import config
 from .prioc import prioc_router
+from .grid_generator import grid_generator_router
 
 
 logger.remove()
@@ -28,3 +29,4 @@ app.add_middleware(
 )
 
 app.include_router(prioc_router, prefix=config.get("FASTAPI_PREFIX"))
+app.include_router(grid_generator_router, prefix=config.get("FASTAPI_PREFIX"))
