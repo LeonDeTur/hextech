@@ -11,19 +11,22 @@ class AsyncApiHandler:
 
     def __init__(
             self,
-            base_url: str
+            base_url: str,
+            bearer_token: dict[str, str] = None
     ) -> None:
         """
         Initialisation function
 
         Args:
             base_url (str): Base api url
+            bearer_token (dict[str, str]): Bearer access token
 
         Returns:
             None
         """
 
         self.base_url = base_url
+        self.bearer_token = {"Authorization": bearer_token}
 
     async def get(
             self,
@@ -60,6 +63,7 @@ class AsyncApiHandler:
             self,
             extra_url: str,
             data: dict | list,
+            headers: dict = None,
             params: dict = None
     ) -> dict:
         """
@@ -67,6 +71,7 @@ class AsyncApiHandler:
 
         Args:
             extra_url (str): Endpoint url
+            headers (dict): Headers
             data (dict): Data to post | list
             params (dict): Query parameters. Default to None
 
@@ -78,6 +83,7 @@ class AsyncApiHandler:
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 url=endpoint_url,
+                headers=headers,
                 params=params,
                 json=data
             ) as response:
@@ -125,4 +131,5 @@ class AsyncApiHandler:
 urban_api_handler = AsyncApiHandler(config.get("URBAN_API"))
 townsnet_api_handler = AsyncApiHandler(config.get("TOWNSNET_API"))
 transport_frame_api_handler = AsyncApiHandler(config.get("TRANSPORT_FRAME_API"))
-ecoframe_api_handler = AsyncApiHandler(config.get("ECOFRAME_API"))
+pop_frame_api_handler = AsyncApiHandler(config.get("POP_FRAME_API"), "Bearer" + config.get("POP_FRAME_TOKEN"))
+eco_frame_api_handler = AsyncApiHandler(config.get("ECOFRAME_API"))
