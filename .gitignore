@@ -122,6 +122,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+.env.development
 .env
 .venv
 env/
@@ -153,6 +154,16 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# IDE
+/.idea
+/.vscode
+
+# App cache
+__hextech_cache__/
+
+# notebooks
+*.ipynb
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

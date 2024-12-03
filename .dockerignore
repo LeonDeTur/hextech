@@ -1,0 +1,13 @@
+.git
+.idea
+Dockerfile
+DockerRun.txt
+README.md
+build.sh
+
+venv/
+.venv/
+tests/
+__hextech_cache__/
+
+**/*.ipynb
