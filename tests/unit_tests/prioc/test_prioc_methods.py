@@ -23,9 +23,9 @@ async def test_get_hexes_with_indicators_by_territory():
 
 @pytest.mark.asyncio
 async def test_exception_get_hexes_with_indicators_by_territory():
-    with pytest.raises(HTTPException):
+    with pytest.raises(HTTPException) as http_e:
         await hex_api_getter.get_hexes_with_indicators_by_territory(-1)
-
+        assert http_e.value.status_code == 501
 
 @pytest.mark.asyncio
 async def test_get_positive_service_by_territory_id():
@@ -203,6 +203,7 @@ async def test_get_territory_estimation():
 
 @pytest.mark.asyncio
 async def test_get():
-    with pytest.raises(HTTPException):
+    with pytest.raises(HTTPException) as http_e:
         url = "/api/v1/territory/geojson?territory_id=-1"
         await urban_api_handler.get(url, params={})
+        assert http_e.value.status_code == 422
