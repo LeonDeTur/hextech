@@ -3,8 +3,8 @@ from app.common.storage.implementations.disposable_json import DisposableJSON
 
 
 bucket_name = config.get("FILESERVER_BUCKET_NAME")
-profile_weights_filename = config.get("FILESERVER_PROFILE_WEIGHTS")
+profiles_filename = config.get("FILESERVER_PROFILES_WEIGHTS")
 
 
-profile_weights = DisposableJSON()
-profile_weights.try_init(bucket_name, profile_weights_filename)
+profiles = DisposableJSON()
+profiles.try_init(bucket_name, profiles_filename)

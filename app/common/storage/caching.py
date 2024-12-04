@@ -24,7 +24,8 @@ class CachingService:
             raise http_exception(
                 500,
                 "Several instances of file in cache directory, manual conflict resolution required",
-                [name, len(files)]
+                [name, len(files)],
+                _detail="get_cached_file_name",
             )
 
         # Only 1 instance of file can be in cache directory

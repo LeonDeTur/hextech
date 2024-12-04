@@ -21,7 +21,15 @@ class HexesDTO(BaseModel):
         description="Territory id to calculate hexes priority"
     )
 
-    object_type: prioc_objects_types = Field(
+    object_type: Literal[
+        "Медицинский комплекс",
+        "Бизнес-кластер",
+        "Пром объект",
+        "Логистическо-складской комплекс",
+        "Порт",
+        "Кампус университетский",
+        "Тур база",
+    ] = Field(
         ...,
         examples=["Тур база"],
         description="Possible object to place in territory"

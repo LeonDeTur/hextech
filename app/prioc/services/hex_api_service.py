@@ -1,9 +1,7 @@
 import geopandas as gpd
 import pandas as pd
 
-from app.common import config, http_exception, urban_api_handler
-from .constants import LO_HEXES
-
+from app.common import config, urban_api_handler
 
 bucket_name = config.get("FILESERVER_BUCKET_NAME")
 lo_hexes_filename= config.get("FILESERVER_LO_NAME")
@@ -36,9 +34,10 @@ class HexApiService:
         self.territory_url = territory_url
         self.extractor = urban_api_handler
 
-    #ToDo Rewrite to urban api
-    @staticmethod
-    async  def get_hexes_with_indicators_by_territory(territory_id: int) -> gpd.GeoDataFrame:
+    async  def get_hexes_with_indicators_by_territory(
+            self,
+            territory_id: int
+    ) -> gpd.GeoDataFrame:
         """
         Function retrieves hexagons layer with indicators
 
@@ -49,17 +48,12 @@ class HexApiService:
             gpd.GeoDataFrame: Hexagons with indicators values as layers attributes in 4326 crs
         """
 
-        if territory_id != 1:
-            raise http_exception(
-                501,
-                "Other territories not supported for now",
-                _input=territory_id,
-                _detail="Only territory_id = 1 implemented"
-            )
-
-        LO_HEXES.try_init(bucket_name, lo_hexes_filename)
-        response = LO_HEXES.gdf[hexes_attributes_list]
-        return response
+        url = f"{self.territory_url}/{territory_id}/hexagons"
+        response = await self.extractor.get(
+            url=url,
+        )
+        result = gpd.GeoDataFrame.from_features(response.json(), crs=4326)
+        return result
 
     async def get_negative_service_by_territory_id(
             self,

@@ -3,12 +3,16 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from .dto import HexesDTO, TerritoryDTO
+from .dto import HexesDTO, TerritoryDTO, prioc_objects_types
 from .services import prioc_service
 
 
 prioc_router = APIRouter(prefix="/prioc", tags=["Priority object calculation"])
 
+
+@prioc_router.get("/prioc_objects_list")
+async def get_prioc_objects_list():
+    return prioc_objects_types
 
 @prioc_router.get("/object")
 # @decorators.gdf_to_geojson

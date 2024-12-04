@@ -1,3 +1,7 @@
+import json
+
+from loguru import logger
+
 from app.common import urban_api_handler
 from app.common.api_handler.api_handler import (
     transport_frame_api_handler,
@@ -16,6 +20,7 @@ class GeneratorApiService:
         """
 
         self.territory = "/api/v1/territory"
+        self.physical = "/api/v1/physical_objects"
         self.urban_extractor = urban_api_handler
         self.townsnet_extractor = townsnet_api_handler
         self.transport_frame_extractor = transport_frame_api_handler
@@ -41,29 +46,29 @@ class GeneratorApiService:
         )
         return response
 
-    async def get_physical_objects_to_clean(
+    async def get_intersecting_geometry(
             self,
-            territory_id: int,
-            physical_obj_id: int
+            territory_geometry: dict,
+            physical_object_id: int
     ) -> dict | list:
         """
-        Function retrieves objects to clean grid from
+        Function retrieves intersecting physical objects geometries with provided territory geometry
 
         Args:
-            territory_id (int): Territory ID
-            physical_obj_id
+            territory_geometry (dict): Territory geometry
+            physical_object_id (int): Physical object ID
 
-        Returns:
-            dict: Objects to clean from in FeatureCollection format
+        Return:
+            dict | list: Intersecting physical objects geometries
         """
 
-        response = await  self.urban_extractor.get(
-            extra_url=f"{self.territory}/{territory_id}/physical_objects_geojson",
+        url = f"{self.physical}/around"
+        response = await self.urban_extractor.post(
+            extra_url=url,
             params={
-                "physical_object_type_id": physical_obj_id,
-                "cities_only": False,
-                "centers_only": False
-            }
+                "physical_object_type_id": physical_object_id
+            },
+            data=territory_geometry
         )
         return response
 
@@ -82,10 +87,12 @@ class GeneratorApiService:
             dict | list: Evaluated data
         """
 
+        logger.info(f"Started provision extraction for {len(json_data['features'])} territories")
         response = await self.townsnet_extractor.post(
             extra_url=f"/provision/{territory_id}/get_evaluation",
             data=json_data
         )
+        finished = False
         return response
 
     async def get_engineering_evaluation(
@@ -187,7 +194,7 @@ class GeneratorApiService:
         response = await self.urban_extractor.get(
             extra_url=f"{self.territory}/{territory_id}/hexagons",
             params={
-                "centers_only": True
+                "centers_only": "true"
             }
         )
         return response
