@@ -1,4 +1,5 @@
 import geopandas as gpd
+from loguru import logger
 
 from .constants import profiles
 
@@ -30,7 +31,7 @@ class PotentialEstimator:
             self,
             hexes: gpd.GeoDataFrame
     ) -> gpd.GeoDataFrame:
-
+        logger.info(f"Started potential estimation with {len(hexes)} hexes")
         result_list = []
         for index, row in hexes.iterrows():
             cur_potential = self.estimate_potential(row.to_dict())
@@ -38,6 +39,7 @@ class PotentialEstimator:
 
         columns = list(profiles.json.keys())
         hexes[columns] = result_list
+        logger.info(f"Finished potential estimation with {len(hexes)} hexes")
 
         return hexes
 

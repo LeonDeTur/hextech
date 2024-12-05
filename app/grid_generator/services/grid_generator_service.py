@@ -3,11 +3,12 @@ import json
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import shape
+from loguru import logger
 
 from .generator_api_service import generator_api_service
 from .grid_generator import grid_generator
 from .potential_estimator import potential_estimator
-from app.common import http_exception, params_validator
+from app.common import http_exception, params_validator, thread_api_handler
 
 
 class GridGeneratorService:
@@ -44,21 +45,6 @@ class GridGeneratorService:
 
         result = pd.concat(physical_obj)
         return result
-
-    @staticmethod
-    async def get_eco_frame_marks_list(
-            territory_id: int,
-            json_hexes: gpd.GeoDataFrame,
-    ) -> list[int]:
-        features_list = json_hexes['features']
-        res_list = []
-        for feature in features_list:
-            mark_val = await generator_api_service.get_ecological_evaluation(
-                territory_id=territory_id,
-                json_data=feature["geometry"],
-            )
-            res_list.append(mark_val["relative_mark"])
-        return res_list
 
     @staticmethod
     async def save_new_hexagons(
@@ -114,17 +100,20 @@ class GridGeneratorService:
                 _detail=f"List of available territories {available_ids}"
             )
 
+        logger.info(f"Starting geometry retrieving for territory with id {territory_id}")
         territory_data = await generator_api_service.get_territory_data(territory_id)
         territory = gpd.GeoDataFrame(geometry=[shape(territory_data["geometry"])], crs=4326)
+        logger.info(f"Got geometry for territory with id {territory_id}, starting grid generation")
         grid = await grid_generator.generate_hexagonal_grid(territory)
+        logger.info(f"Finished grid generation{territory_id}, starting grid clarification")
         if pure:
             water = await self.get_cleaning_gdf(territory_id, [45, 55])
             drop_index = grid.sjoin(water, predicate='within').index.to_list()
             grid.drop(drop_index, inplace=True)
         return grid
 
+    @staticmethod
     async def calculate_grid_indicators(
-            self,
             grid: gpd.GeoDataFrame,
             territory_id: int,
     ) -> gpd.GeoDataFrame:
@@ -152,42 +141,64 @@ class GridGeneratorService:
                 _detail="Ask 507 for further information"
             )
 
-        social = await generator_api_service.get_social_provision_evaluation(
-            territory_id,
-            feature_collection_grid
-        )
-        engineering = await generator_api_service.get_urban_engineering_evaluation(
-            territory_id,
-            feature_collection_grid
-        )
-        transport = await generator_api_service.get_transport_evaluation(
-            territory_id,
-            feature_collection_grid
-        )
-        ecology = await self.get_eco_frame_marks_list(
-            territory_id,
-            feature_collection_grid
-        )
-        population = await generator_api_service.get_population_evaluation(
-            territory_id,
-            feature_collection_grid
-        )
-        indicators_data = [
-            social,
-            engineering,
-            transport,
-            ecology,
-            population
+        functions_to_extract = [
+            generator_api_service.get_social_provision_evaluation,
+            generator_api_service.get_engineering_evaluation,
+            generator_api_service.get_transport_evaluation,
+            generator_api_service.get_ecological_evaluation,
+            generator_api_service.get_population_evaluation
         ]
-        columns = ['Показатель: Население',
-                   'Показатель: Транспорт',
-                   'Показатель: Экология',
-                   'Показатель: Социальная обеспеченность',
-                   'Показатель: Инженерная инфраструктура'
-                   ]
 
-        grid[columns] = indicators_data
-        return grid
+        results = await thread_api_handler.extract_multiple_requests_in_treads(
+            api_queries=functions_to_extract,
+            territory_id=territory_id,
+            geojson_data=feature_collection_grid,
+        )
+        # logger.info(f"Starting indicators calculation for grid with territory id {territory_id}")
+        # logger.info(f"Started social indicator evaluation for grid with territory id {territory_id}")
+        # social = await generator_api_service.get_social_provision_evaluation(
+        #     territory_id,
+        #     feature_collection_grid
+        # )
+        # logger.info(f"Started engineering indicators calculation for grid with territory id {territory_id}")
+        # engineering = await generator_api_service.get_engineering_evaluation(
+        #     territory_id,
+        #     feature_collection_grid
+        # )
+        # logger.info(f"Started transport indicators calculation for grid with territory id {territory_id}")
+        # transport = await generator_api_service.get_transport_evaluation(
+        #     territory_id,
+        #     feature_collection_grid
+        # )
+        # logger.info(f"Started ecology indicators calculation for grid with territory id {territory_id}")
+        # ecology = await generator_api_service.get_ecological_evaluation(
+        #     territory_id,
+        #     {"feature_collection": feature_collection_grid}
+        # )
+        # logger.info(f"Started population indicators calculation for grid with territory id {territory_id}")
+        # population = await generator_api_service.get_population_evaluation(
+        #     territory_id,
+        #     feature_collection_grid
+        # )
+        # indicators_data = [
+        #     social,
+        #     engineering,
+        #     transport,
+        #     ecology,
+        #     population
+        # ]
+        # columns = ['Показатель: Население',
+        #            'Показатель: Транспорт',
+        #            'Показатель: Экология',
+        #            'Показатель: Социальная обеспеченность',
+        #            'Показатель: Инженерная инфраструктура'
+        #            ]
+        #
+        # grid[columns] = indicators_data
+
+        results_df = pd.DataFrame.from_dict(results, orient='columns')
+        grid_with_indicators = grid.merge(results_df, left_index=True, right_index=True)
+        return grid_with_indicators
 
     async def generate_grid_with_indicators(
             self,
@@ -207,10 +218,10 @@ class GridGeneratorService:
 
         if territory_id != 1:
             raise http_exception(
-                501,
+                400,
                 msg="No territories supported accept LO with id=1",
                 _input=f"{territory_id}",
-                _detail="Just wait..."
+                _detail="Just wait while 507 will start refactoring or their api dies finally..."
             )
 
         grid = await self.generate_grid(territory_id)

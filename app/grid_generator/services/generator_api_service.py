@@ -1,5 +1,3 @@
-import json
-
 from loguru import logger
 
 from app.common import urban_api_handler
@@ -92,8 +90,8 @@ class GeneratorApiService:
             extra_url=f"/provision/{territory_id}/get_evaluation",
             data=json_data
         )
-        finished = False
-        return response
+
+        return {"Показатель: Социальная обеспеченность": response}
 
     async def get_engineering_evaluation(
             self,
@@ -114,25 +112,28 @@ class GeneratorApiService:
             extra_url=f"/engineering/{territory_id}/evaluate_geojson",
             data=json_data
         )
-        return response
+        return {"Показатель: Инженерная инфраструктура": response}
 
     async def get_transport_evaluation(
             self,
-            territory_id: int
+            territory_id: int,
+            json_data: dict | list
     ) -> dict | list:
         """
         Function retrieves transport frame
         Args:
             territory_id (int): Territory ID
+            json_data (dict): Data for evaluation
 
         Returns:
             dict | list: Transport frame
         """
 
-        response = await self.transport_frame_extractor.get(
-            extra_url=f"/{territory_id}/transport_criteria"
+        response = await self.transport_frame_extractor.post(
+            extra_url=f"/{territory_id}/transport_criteria",
+            data=json_data
         )
-        return response
+        return {"Показатель: Транспорт": response}
 
     async def get_ecological_evaluation(
             self,
@@ -149,14 +150,13 @@ class GeneratorApiService:
             dict | list: Evaluated data
         """
 
+        eco_feature_collection = {"feature_collection": json_data}
         response = await self.eco_frame_extractor.post(
-            extra_url=f"/ecoframe/eco_mark",
-            params={
-                "region_id": territory_id,
-            },
-            data=json_data
+            extra_url=f"/ecodonut/{territory_id}/mark",
+            data=eco_feature_collection
         )
-        return response
+        result = [item["relative_mark"] for item in response]
+        return {"Показатель: Экология": result}
 
     async def get_population_evaluation(
             self,
@@ -175,10 +175,10 @@ class GeneratorApiService:
 
         response = await self.pop_frame_extractor.post(
             extra_url=f"/population/{territory_id}/evaluate",
-            headers=townsnet_api_handler.bearer_token,
+            headers=pop_frame_api_handler.auth_header,
             data=json_data
         )
-        return response
+        return {"Показатель: Население": response}
 
     async def get_hexes_from_db(
             self,
