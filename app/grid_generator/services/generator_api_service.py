@@ -201,7 +201,7 @@ class GeneratorApiService:
         response = await self.urban_extractor.get(
             extra_url=f"{self.territory}/{territory_id}/hexagons",
             params={
-                "centers_only": "true"
+                "centers_only": "false"
             }
         )
         return response
