@@ -8,8 +8,8 @@ from .services import grid_generator_service
 grid_generator_router = APIRouter(prefix="/hex_generator", tags=["Grid Generation"])
 
 
-@grid_generator_router.post("/generate_full/{territory_id}")
-async def generate_grid(territory_id: int) -> dict:
+@grid_generator_router.get("/generate_full/{territory_id}")
+async def generate_grid_with_indicators_and_potentials(territory_id: int) -> dict:
     """
     Generate grid with provided territory with indicators
 
@@ -24,9 +24,15 @@ async def generate_grid(territory_id: int) -> dict:
 
     result = await grid_generator_service.generate_grid_with_indicators(
         territory_id,
-        save_to_db=False
     )
     result = json.loads(result.to_json())
+    return result
+
+@grid_generator_router.put("/bound_indicators_to_hexes/{territory_id}")
+async def bound_indicators_to_hexes(territory_id: int) -> dict:
+    result = await grid_generator_service.bound_hexagons_indicators(
+        territory_id,
+    )
     return result
 
 @grid_generator_router.post("/generate_to_db/{territory_id}")

@@ -22,7 +22,10 @@ class PotentialEstimator:
 
         result = [
             sum(
-                [True for i in indicators_values.values() if i >= profiles.json[profile_name]["Критерии"]]
+                [
+                    True for key, value in indicators_values.items()
+                    if value >= profiles.json[profile_name]["Критерии"][key]
+                ]
             ) for profile_name in profiles.json.keys()
         ]
         return result
@@ -33,8 +36,9 @@ class PotentialEstimator:
     ) -> gpd.GeoDataFrame:
         logger.info(f"Started potential estimation with {len(hexes)} hexes")
         result_list = []
-        for index, row in hexes.iterrows():
-            cur_potential = self.estimate_potential(row.to_dict())
+        hexes_df = hexes.drop(columns=["geometry"])
+        for index, row in hexes_df.iterrows():
+            cur_potential = await self.estimate_potential(row.to_dict())
             result_list.append(cur_potential)
 
         columns = list(profiles.json.keys())
