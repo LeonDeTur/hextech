@@ -197,8 +197,9 @@ class GridGeneratorService:
         """
 
         hexagons_geojson = await generator_api_service.get_hexes_from_db(territory_id)
-        hexagons = gpd.GeoDataFrame.from_features(hexagons_geojson, crs=4326)
-        bounded_hexagons = await self.calculate_grid_indicators(hexagons, territory_id)
+        grid = gpd.GeoDataFrame.from_features(hexagons_geojson, crs=4326)
+        grid_with_indicators = await self.calculate_grid_indicators(grid, territory_id)
+        bounded_hexagons = await potential_estimator.estimate_potentials(grid_with_indicators)
         full_map = await generator_api_service.extract_all_indicators()
         mapped_name_id = {}
         for item in full_map:

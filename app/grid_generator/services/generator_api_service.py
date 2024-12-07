@@ -139,7 +139,7 @@ class GeneratorApiService:
             extra_url=f"/{territory_id}/transport_criteria",
             data=json_data
         )
-        return {"Показатель: Транспорт": response}
+        return {"Транспортное обеспечение": response}
 
     async def get_ecological_evaluation(
             self,
