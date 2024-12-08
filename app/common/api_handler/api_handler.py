@@ -111,6 +111,7 @@ class AsyncApiHandler:
             self,
             extra_url: str,
             data: dict | list,
+            session: aiohttp.ClientSession,
             params: dict = None,
             headers: dict = None,
     ) -> dict:
@@ -118,6 +119,7 @@ class AsyncApiHandler:
         Function extracts put query within extra url
 
         Args:
+            session (aiohttp.ClientSession): Session to extract requests
             extra_url (str): Endpoint url
             data (dict): Data to post | list
             params (dict): Query parameters. Default to None
@@ -128,7 +130,7 @@ class AsyncApiHandler:
         """
 
         endpoint_url = self.base_url + extra_url
-        async with aiohttp.ClientSession() as session:
+        async with session as session:
             async with session.put(
                 url=endpoint_url,
                 headers=headers,

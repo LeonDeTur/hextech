@@ -1,4 +1,3 @@
-import pandas as pd
 from loguru import logger
 
 from app.common import urban_api_handler, config
@@ -8,6 +7,7 @@ from app.common.api_handler.api_handler import (
     eco_frame_api_handler,
     pop_frame_api_handler
 )
+from app.common import tasks_api_handler, config
 
 
 class GeneratorApiService:
@@ -28,6 +28,8 @@ class GeneratorApiService:
         self.transport_frame_extractor = transport_frame_api_handler
         self.pop_frame_extractor = pop_frame_api_handler
         self.eco_frame_extractor = eco_frame_api_handler
+        self.put_counter = 0
+        self.max_async_extractions = int(config.get("MAX_API_ASYNC_EXTRACTIONS"))
 
     async def get_territory_data(
             self, territory_id: int
@@ -243,28 +245,22 @@ class GeneratorApiService:
 
     async def put_hexagon_data(
             self,
-            index: int,
-            indicator_id: int,
-            territory_id: int,
-            value: int | float,
+            data_list: list[dict]
     ) -> None:
 
-        put_data = {
-            "indicator_id": indicator_id,
-            "scenario_id": 1,
-            "territory_id": territory_id,
-            "hexagon_id": index,
-            "value": value,
-            "comment": "--",
-            "information_source": "modeled",
-            "properties": {}
-        }
+        extra_url = f"{self.scenarios}/indicators_values"
+        list_to_extract = [{"extra_url": extra_url, "data": hex_data} for hex_data in data_list]
+        for i in range(0, len(list_to_extract), self.max_async_extractions):
+            chunk = list_to_extract[i:i + self.max_async_extractions]
+            await tasks_api_handler.extract_requests_to_one_url(
+                func=urban_api_handler.put,
+                headers=self.headers,
+                data=chunk,
+                max_concurrent_requests=self.max_async_extractions
+            )
 
-        await self.urban_extractor.put(
-            url=f"{self.scenarios}/indicators_values",
-            data=put_data,
-            headers=self.headers
-        )
+            self.put_counter += self.max_async_extractions
+            print(self.put_counter)
 
 
 generator_api_service = GeneratorApiService()

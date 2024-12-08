@@ -205,14 +205,25 @@ class GridGeneratorService:
         for item in full_map:
             if item["name_full"] in bounded_hexagons.columns:
                 mapped_name_id[item["name_full"]] = item["indicator_id"]
-        for index, row in bounded_hexagons.iterrows():
-            for column in bounded_hexagons.columns:
-                await generator_api_service.put_hexagon_data(
-                    index=index,
-                    indicator_id=mapped_name_id[column],
-                    territory_id=territory_id,
-                    value=row[column],
+        df_to_put = bounded_hexagons.drop(columns=["geometry", "properties"])
+        columns_to_iter = list(df_to_put.drop(columns="hexagon_id").columns)
+        extract_list = []
+        for index, row in df_to_put.iterrows():
+            for column in columns_to_iter:
+                extract_list.append(
+                    {
+                    "indicator_id": mapped_name_id[column],
+                    "scenario_id": 122,
+                    "territory_id": territory_id,
+                    "hexagon_id": row["hexagon_id"],
+                    "value": row[column],
+                    "comment": "--",
+                    "information_source": "modeled",
+                    "properties": {}
+                    }
                 )
+
+        await generator_api_service.put_hexagon_data(extract_list)
 
         return {"msg": f"Successfully uploaded hexagons data for {territory_id}"}
 

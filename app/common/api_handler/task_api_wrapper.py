@@ -1,5 +1,7 @@
 import asyncio
 
+import aiohttp
+
 from app.common.config import config
 
 
@@ -32,22 +34,33 @@ class TasksApiHandler:
 
     @staticmethod
     async def extract_requests_to_one_url(
-            api_query,
-            params: list
+            func,
+            data: list[dict],
+            headers: dict,
+            max_concurrent_requests: int = 4
     ) -> list:
         """
         Function executes few api queries to one endpoint
 
         Args:
-            api_query: api query
-            params: list of parameters
+            func: function to execute
+            data (list[dict]): data for api request
+            headers: headers for api request
+            max_concurrent_requests (int): maximum number of concurrent requests
 
         Returns:
             list of api queries results
         """
 
-        tasks = [api_query(param) for param in params]
-        result = await asyncio.gather(*tasks)
+        semaphore = asyncio.Semaphore(max_concurrent_requests)
+
+        async def bound_func(data_obj):
+            async with semaphore:
+                async with aiohttp.ClientSession() as session:
+                    return await func(session=session, headers=headers, **data_obj)
+
+        tasks_list = [bound_func(data_obj) for data_obj in data]
+        result = await asyncio.gather(*tasks_list, return_exceptions=True)
         return result
 
 
