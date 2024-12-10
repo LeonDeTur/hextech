@@ -29,9 +29,7 @@ class PriocService:
             gpd.GeoDataFrame: Layer with calculated hexes values
         """
 
-        hexes = await hex_api_getter.get_hexes_with_indicators_by_territory(
-            hex_params.territory_id
-        )
+        hexes = await hex_api_getter.get_hexes_with_indicators_by_territory()
         hexes_local_crs = hexes.estimate_utm_crs()
         hexes.to_crs(hexes_local_crs, inplace=True)
         positive_services_list = POSITIVE_SERVICE_CLEANING.json.get(hex_params.object_type)
@@ -111,9 +109,7 @@ class PriocService:
         territory = gpd.GeoDataFrame([1], geometry=[shape(territory_params.territory.model_dump())], crs=4326)
         territory_local_crs = territory.estimate_utm_crs()
         territory.to_crs(territory_local_crs, inplace=True)
-        hexagons = await hex_api_getter.get_hexes_with_indicators_by_territory(
-            territory_params.territory_id
-        )
+        hexagons = await hex_api_getter.get_hexes_with_indicators_by_territory()
         hexagons.to_crs(territory_local_crs, inplace=True)
         hexagons = hexagons.clip(territory.geometry)
         territory_estimation = await territory_estimator.estimate_territory(

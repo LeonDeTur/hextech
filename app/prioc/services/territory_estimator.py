@@ -28,9 +28,9 @@ class TerritoryEstimator:
                 indicator_name: str
         ) -> str:
             if actual < target:
-                return f"Слабый {indicator_name.lower()}"
+                return f"Слабый показатель: {indicator_name.lower()}"
             else:
-                return f"Хороший {indicator_name.lower()}"
+                return f"Хороший показатель: {indicator_name.lower()}"
 
         indicators = territory_hexagons.drop(columns=['geometry']).mean().to_dict()
 

@@ -74,7 +74,8 @@ class HexEstimator:
         Returns:
             gpd.GeoDataFrame: GeoDataFrame with clear and united clusters
         """
-
+        if len(clustered_hexagons["cluster"].unique()) == 1:
+            return clustered_hexagons
         grouped = gpd.GeoDataFrame()
         for cluster in list(clustered_hexagons.cluster.unique()):
             tmp_gdf = clustered_hexagons[clustered_hexagons.cluster == cluster]

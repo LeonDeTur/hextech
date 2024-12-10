@@ -1,3 +1,5 @@
+import asyncio
+
 import geopandas as gpd
 import pandas as pd
 
@@ -5,14 +7,13 @@ from app.common import config, urban_api_handler
 
 bucket_name = config.get("FILESERVER_BUCKET_NAME")
 lo_hexes_filename= config.get("FILESERVER_LO_NAME")
-hexes_attributes_list = [
-    "geometry",
-    'Показатель: Население',
-    'Показатель: Транспорт',
-    'Показатель: Экология',
-    'Показатель: Социальная обеспеченность',
-    'Показатель: Инженерная инфраструктура'
-]
+
+indicators_names = ['Население',
+ 'Транспортное обеспечение',
+ 'Экологическая ситуация',
+ 'Социальное обеспечение',
+ 'Обеспечение инженерной инфраструктурой']
+hexes_attributes_list = indicators_names + ["geometry"]
 
 
 class HexApiService:
@@ -21,6 +22,7 @@ class HexApiService:
     def __init__(
             self,
             territory_url="/api/v1/territory",
+            scenarios_url="/api/v1/scenarios"
     ):
         """
         Initialization function
@@ -31,28 +33,33 @@ class HexApiService:
         Returns:
             None
         """
+
         self.territory_url = territory_url
         self.extractor = urban_api_handler
+        self.scenarios_url = scenarios_url
 
+    # ToDo rewrite to other scenarios ids
     async  def get_hexes_with_indicators_by_territory(
             self,
-            territory_id: int
     ) -> gpd.GeoDataFrame:
         """
         Function retrieves hexagons layer with indicators
-
-        Args:
-            territory_id (integer): Territory ID
 
         Returns:
             gpd.GeoDataFrame: Hexagons with indicators values as layers attributes in 4326 crs
         """
 
-        url = f"{self.territory_url}/{territory_id}/hexagons"
+        def expand_list(row: pd.Series) -> list[float]:
+            current_list = [row["indicators"]][0]
+            return [i["value"] for i in current_list if i["name_full"] in indicators_names]
+
+        url = f"{self.scenarios_url}/122/indicators_values/hexagons"
         response = await self.extractor.get(
-            url=url,
+            extra_url=url,
         )
-        result = gpd.GeoDataFrame.from_features(response.json(), crs=4326)
+        gdf = gpd.GeoDataFrame.from_features(response, crs=4326)
+        gdf[indicators_names] = await asyncio.to_thread(gdf.apply, func=expand_list, axis=1, result_type="expand")
+        result = gdf.drop(columns=["indicators"])
         return result
 
     async def get_negative_service_by_territory_id(
