@@ -3,6 +3,7 @@ import asyncio
 import geopandas as gpd
 from shapely.geometry import shape
 
+from app.indicators_savior.dto import IndicatorsDTO
 from app.prioc.dto.hexes_dto import HexesDTO
 from app.prioc.dto.territory_dto import TerritoryDTO
 from .hex_api_service import  hex_api_getter
@@ -95,7 +96,7 @@ class PriocService:
 
     @staticmethod
     async def get_territory_estimation(
-            territory_params: TerritoryDTO,
+            territory_params: TerritoryDTO | IndicatorsDTO,
     ) -> dict[str, float]:
         """
         Generates territory evaluation with available objects
@@ -106,7 +107,8 @@ class PriocService:
         Returns:
             dict: Dictionary with calculated territory values
         """
-        territory = gpd.GeoDataFrame([1], geometry=[shape(territory_params.territory.model_dump())], crs=4326)
+
+        territory = gpd.GeoDataFrame([1], geometry=[shape(territory_params.territory.__dict__)], crs=4326)
         territory_local_crs = territory.estimate_utm_crs()
         territory.to_crs(territory_local_crs, inplace=True)
         hexagons = await hex_api_getter.get_hexes_with_indicators_by_territory()

@@ -7,6 +7,7 @@ from .common.config import config
 from .prioc import prioc_router
 from .grid_generator import grid_generator_router
 from .limitations import limitations_router
+from .indicators_savior import indicators_savior_router
 
 
 logger.remove()
@@ -32,3 +33,4 @@ app.add_middleware(
 app.include_router(prioc_router, prefix=config.get("FASTAPI_PREFIX"))
 app.include_router(grid_generator_router, prefix=config.get("FASTAPI_PREFIX"))
 app.include_router(limitations_router, prefix=config.get("FASTAPI_PREFIX"))
+app.include_router(indicators_savior_router, prefix=config.get("FASTAPI_PREFIX"))

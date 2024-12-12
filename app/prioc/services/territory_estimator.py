@@ -55,9 +55,7 @@ class TerritoryEstimator:
                 weight = (n - rank + 1) / denominator
                 score = (indicators[indicator] - current_object_indicators_min_val[indicator]) * weight
                 total_score += score
-            result_dict[key]["estimation"] = {
-                round(total_score, 2)
-            }
+            result_dict[key]["estimation"] = round(total_score, 2)
             result_dict[key]["interpretation"] = interpretations
 
         return result_dict
