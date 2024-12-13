@@ -123,7 +123,7 @@ class IndicatorsSaviorApiService:
         first_to_put = {
             "indicator_id": 194,
             "scenario_id": project_scenario_id,
-            "territory_id": 1,
+            "territory_id": None,
             "hexagon_id": None,
             "value": eco_marks["relative_mark"],
             "comment": eco_marks["relative_mark_description"],
@@ -133,7 +133,7 @@ class IndicatorsSaviorApiService:
         second_to_put = {
             "indicator_id": 199,
             "scenario_id": project_scenario_id,
-            "territory_id": 1,
+            "territory_id": None,
             "hexagon_id": None,
             "value": eco_marks["absolute_mark"],
             "comment": eco_marks["absolute_mark_description"],

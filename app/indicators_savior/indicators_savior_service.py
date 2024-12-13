@@ -27,7 +27,7 @@ class IndicatorsSaviorService:
             first_to_put = {
                 "indicator_id": indicator_id,
                 "scenario_id": project_scenario_id,
-                "territory_id": 1,
+                "territory_id": None,
                 "hexagon_id": None,
                 "value": value,
                 "comment": comment,
