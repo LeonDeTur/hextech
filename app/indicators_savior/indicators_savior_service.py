@@ -1,6 +1,7 @@
 import asyncio
 
 import geopandas as gpd
+from loguru import logger
 from shapely.geometry import shape
 
 from app.indicators_savior.indicators_savior_services.indicators_savior_api_service import indicators_savior_api_service
@@ -64,7 +65,8 @@ class IndicatorsSaviorService:
         )
         evaluations = await prioc_service.prioc_service.get_territory_estimation(save_params)
         await self.post_all(evaluations, save_params.scenario_id)
-        return {"msg": "success"}
+        logger.info(f"Finished saving all indicators with scenario id {save_params.scenario_id}")
+        return {"msg": "Successfully saved all indicators"}
 
 
 indicators_savior_service = IndicatorsSaviorService()

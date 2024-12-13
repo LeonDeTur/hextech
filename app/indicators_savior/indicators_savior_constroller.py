@@ -1,8 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
+from loguru import logger
 
 from .dto import IndicatorsDTO
+from .shema import SaveResponse
 from .indicators_savior_service import indicators_savior_service
 
 
@@ -11,11 +13,15 @@ indicators_savior_router = APIRouter(prefix="/indicators_saving", tags=["Save al
 
 @indicators_savior_router.put("/save_all")
 async def save_all_indicators_to_db(
-        save_params: Annotated[IndicatorsDTO, Depends(IndicatorsDTO)]
-):
+        save_params: Annotated[IndicatorsDTO, Depends(IndicatorsDTO)],
+        background_tasks: BackgroundTasks,
+) -> SaveResponse:
     """
     Count all indicators and save them to db.
     """
-
+    logger.info(f"Started evaluating indicators with {save_params.scenario_id}")
+    if save_params.background:
+        background_tasks.add_task(indicators_savior_service.save_all_indicators, save_params)
+        return SaveResponse(**{"msg": "Started indicators calculations and saving"})
     result = await indicators_savior_service.save_all_indicators(save_params)
     return result

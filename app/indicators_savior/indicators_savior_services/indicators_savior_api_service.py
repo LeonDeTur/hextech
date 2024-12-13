@@ -61,7 +61,7 @@ class IndicatorsSaviorApiService:
 
         json_territory = json.loads(territory.to_json())
         tasks = [
-            pop_frame_api_handler.post(
+            pop_frame_api_handler.put(
                 extra_url="/PopFrame/save_popframe_evaluation",
                 params={
                     "region_id": region_id,
@@ -87,7 +87,7 @@ class IndicatorsSaviorApiService:
                 headers=self.headers,
                 data=json_territory,
             ),
-            townsnet_api_handler.post(
+            townsnet_api_handler.put(
                 extra_url=f"/engineering/{region_id}/evaluate_project",
                 params={
                     "project_scenario_id": project_scenario_id,

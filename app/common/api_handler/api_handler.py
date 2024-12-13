@@ -55,6 +55,9 @@ class AsyncApiHandler:
                 if response.status == 200:
                     return await response.json()
                 additional_info = await response.json()
+                logger.info(
+                    f"Couldn't extract get request with url: {endpoint_url}, status code {response.status}"
+                )
                 raise http_exception(
                     response.status,
                     "Error during extracting query",
@@ -100,6 +103,9 @@ class AsyncApiHandler:
                     )
                     return await response.json()
                 additional_info = await response.json()
+                logger.info(
+                    f"Couldn't extract get request with url: {endpoint_url}, status code {response.status}"
+                )
                 raise http_exception(
                     response.status,
                     "Error during extracting query",
@@ -111,7 +117,7 @@ class AsyncApiHandler:
             self,
             extra_url: str,
             data: dict | list,
-            session: aiohttp.ClientSession,
+            session: aiohttp.ClientSession = None,
             params: dict = None,
             headers: dict = None,
     ) -> dict:
@@ -129,6 +135,8 @@ class AsyncApiHandler:
             dict: Query result in dict format | list
         """
 
+        if not session:
+            session = aiohttp.ClientSession()
         endpoint_url = self.base_url + extra_url
         async with session as session:
             async with session.put(
@@ -143,6 +151,9 @@ class AsyncApiHandler:
                         f"Put data with url: {response.url} and status: {response.status}"
                     )
                     return await response.json()
+                logger.info(
+                    f"Couldn't extract get request with url: {endpoint_url}, status code {response.status}"
+                )
                 additional_info = await response.json()
                 raise http_exception(
                     response.status,
