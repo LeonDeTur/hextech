@@ -36,7 +36,10 @@ class PotentialEstimator:
     ) -> gpd.GeoDataFrame:
         logger.info(f"Started potential estimation with {len(hexes)} hexes")
         result_list = []
-        hexes_df = hexes.drop(columns=["geometry", "hexagon_id", "properties"])
+        drop_list = [column for column in [
+            "geometry", "hexagon_id", "properties"] if column in list(hexes.columns)
+                     ]
+        hexes_df = hexes.drop(columns=drop_list)
         for index, row in hexes_df.iterrows():
             cur_potential = await self.estimate_potential(row.to_dict())
             result_list.append(cur_potential)
