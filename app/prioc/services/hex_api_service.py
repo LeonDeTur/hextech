@@ -39,9 +39,9 @@ class HexApiService:
         self.territory_url = territory_url
         self.extractor = urban_api_handler
         self.scenarios_url = scenarios_url
-        self.physical = physical,
+        self.physical = physical
 
-    # ToDo rewrite to other scenarios ids
+    # ToDo rewrite to other scenarios ids and make more flexible
     async  def get_hexes_with_indicators_by_territory(
             self,
     ) -> gpd.GeoDataFrame:
@@ -65,7 +65,7 @@ class HexApiService:
         result = gdf.drop(columns=["indicators"])
         return result
 
-    async def get_negative_service_by_territory_id(
+    async def get_positive_service_by_territory_id(
             self,
             territory_geometry: dict,
             physical_object_ids=None
@@ -85,48 +85,48 @@ class HexApiService:
             physical_object_ids = [45, 55]
         physical_obj = []
         for phys_id in physical_object_ids:
-            url = f"{self.physical}/around"
+            url = f"{self.physical}?physical_object_type_id={phys_id}"
             response = await self.extractor.post(
                 extra_url=url,
-                params={
-                    "physical_object_type_id": phys_id
-                },
                 data=territory_geometry
             )
             tmp_gdf = gpd.GeoDataFrame(geometry=[shape(i["geometry"]) for i in response], crs=4326)
             physical_obj.append(tmp_gdf)
-            return response
 
         result_gdf = pd.concat(physical_obj)
+
+        if isinstance(result_gdf, gpd.GeoDataFrame):
+            if not result_gdf.empty:
+                result_gdf.set_crs(4326, inplace=True)
+            return result_gdf
+        result_gdf = gpd.GeoDataFrame()
         return result_gdf
 
-    async def get_positive_service_by_territory_id(
+    async def get_negative_service_by_territory_id(
             self,
             territory_id: int,
             service_type_ids: list[int],
-    ) -> gpd.GeoDataFrame:
+    ) -> gpd.GeoDataFrame | pd.DataFrame:
         """
-        Function retrieves positive services layer
-
+        Function retrieves negative services layer
         Args:
             territory_id (integer): Territory ID
-            service_type_ids (list[str]): Service type ids for retrieving
-
+            service_type_ids (list[int]): Service type ids for retrieving
         Returns:
             gpd.GeoDataFrame: Services centroids with indicators values as layers attributes
         """
 
         url = f"{self.territory_url}/{territory_id}/services_geojson"
         result_gdf = gpd.GeoDataFrame()
-
         for service_type_id in service_type_ids:
+            current_url = url
             response = await self.extractor.get(
-                extra_url=url,
+                extra_url=current_url,
                 params={
                     "service_type_id": service_type_id,
                     "cities_only": "false",
-                    "centers_only": "false"
-                }
+                    "centers_only": "true"
+                },
             )
 
             current_gdf = gpd.GeoDataFrame.from_features(response)

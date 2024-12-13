@@ -123,8 +123,7 @@ class PriocService:
             negative_services_ids = NEGATIVE_SERVICE_CLEANING.json.get(key)
             if positive_services_ids:
                 positive_services = await hex_api_getter.get_positive_service_by_territory_id(
-                    territory_params.territory_id,
-                    positive_services_ids
+                    territory_params.territory.__dict__,
                 )
                 if not positive_services.empty:
                     positive_services.to_crs(territory_local_crs, inplace=True)

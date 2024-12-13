@@ -86,13 +86,11 @@ class HexCleaner:
         if isinstance(positive_services, gpd.GeoDataFrame):
             positive_services["is_service"] = 1
             check = territory.sjoin(positive_services)
-            print(check.columns)
             if "is_service" in list(check.columns):
-                return True
+                return False
         if isinstance(negative_services, gpd.GeoDataFrame):
             negative_services["is_service"] = 1
             check = territory.sjoin(negative_services)
-            print(check.columns)
             if "is_service" in list(check.columns):
                 return True
         return False
