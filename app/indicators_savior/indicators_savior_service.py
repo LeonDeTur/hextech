@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 import geopandas as gpd
 from loguru import logger
@@ -38,6 +39,23 @@ class IndicatorsSaviorService:
 
         await asyncio.gather(*async_task_list)
 
+    async def save_prioc_evaluations(
+            self,
+            save_params: IndicatorsDTO
+    ) -> None:
+        """
+        Function calculates parameters and saves result to db
+
+        Args:
+            save_params (IndicatorsDTO): request parameters
+
+        Returns:
+            None
+        """
+
+        evaluations = await prioc_service.prioc_service.get_territory_estimation(save_params)
+        await self.post_all(evaluations, save_params.scenario_id)
+
     async def save_all_indicators(
             self,
             save_params: IndicatorsDTO
@@ -53,18 +71,20 @@ class IndicatorsSaviorService:
         """
 
         territory = gpd.GeoDataFrame(geometry=[shape(save_params.territory.__dict__)], crs=4326)
-        await indicators_savior_api_service.save_net_indicators(
-            territory=territory,
-            region_id=save_params.territory_id,
-            project_scenario_id=save_params.scenario_id,
-        )
-        await indicators_savior_api_service.save_eco_frame_estimation(
-            territory=save_params.territory.__dict__,
-            region_id=save_params.territory_id,
-            project_scenario_id=save_params.scenario_id,
-        )
-        evaluations = await prioc_service.prioc_service.get_territory_estimation(save_params)
-        await self.post_all(evaluations, save_params.scenario_id)
+        extract_list = [
+            indicators_savior_api_service.save_net_indicators(
+                territory=territory,
+                region_id=save_params.territory_id,
+                project_scenario_id=save_params.scenario_id
+            ),
+            indicators_savior_api_service.save_eco_frame_estimation(
+                territory=save_params.territory.__dict__,
+                region_id=save_params.territory_id,
+                project_scenario_id=save_params.scenario_id,
+            ),
+            self.save_prioc_evaluations(save_params)
+        ]
+        await asyncio.gather(*extract_list)
         logger.info(f"Finished saving all indicators with scenario id {save_params.scenario_id}")
         return {"msg": "Successfully saved all indicators"}
 
