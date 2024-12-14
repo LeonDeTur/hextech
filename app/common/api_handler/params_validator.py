@@ -30,14 +30,22 @@ class ParamsValidator:
         )
 
         if ids_only:
-            result_list = [item["territory_id"] for item in result if item["territory_id"] == 1]
+            # result_list = [item["territory_id"] for item in result if item["territory_id"] == 1]
+            result_list = [item["territory_id"] for item in result]
             return result_list
+        # result_list = [
+        #     {
+        #         "id": item["territory_id"],
+        #         "name": item["name"],
+        #     }
+        #     for item in result if item["territory_id"] == 1
+        # ]
         result_list = [
             {
                 "id": item["territory_id"],
                 "name": item["name"],
             }
-            for item in result if item["territory_id"] == 1
+            for item in result
         ]
         return result_list
 

@@ -214,11 +214,11 @@ class GridGeneratorService:
                     {
                     "indicator_id": mapped_name_id[column],
                     "scenario_id": 122,
-                    "territory_id": territory_id,
+                    "territory_id": None,
                     "hexagon_id": row["hexagon_id"],
                     "value": row[column],
                     "comment": "--",
-                    "information_source": "modeled",
+                    "information_source": "hextech/grid_generator",
                     "properties": {}
                     }
                 )

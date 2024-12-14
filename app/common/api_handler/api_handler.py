@@ -55,7 +55,7 @@ class AsyncApiHandler:
                 if response.status == 200:
                     return await response.json()
                 additional_info = await response.json()
-                logger.info(
+                logger.warning(
                     f"Couldn't extract get request with url: {endpoint_url}, status code {response.status}"
                 )
                 raise http_exception(
@@ -103,8 +103,8 @@ class AsyncApiHandler:
                     )
                     return await response.json()
                 additional_info = await response.json()
-                logger.info(
-                    f"Couldn't extract get request with url: {endpoint_url}, status code {response.status}"
+                logger.warning(
+                    f"Couldn't extract post request with url: {endpoint_url}, status code {response.status}"
                 )
                 raise http_exception(
                     response.status,
@@ -151,8 +151,8 @@ class AsyncApiHandler:
                         f"Put data with url: {response.url} and status: {response.status}"
                     )
                     return await response.json()
-                logger.info(
-                    f"Couldn't extract get request with url: {endpoint_url}, status code {response.status}"
+                logger.warning(
+                    f"Couldn't extract put request with url: {endpoint_url}, status code {response.status}"
                 )
                 additional_info = await response.json()
                 raise http_exception(
@@ -187,9 +187,14 @@ class AsyncApiHandler:
                 params=params,
                 headers=headers,
             ) as response:
-                if response.status not in (200, 204):
+                if response.status in (200, 201):
+                    logger.info(
+                        f"Delete data with url: {response.url} and status: {response.status}")
                     return await response.json()
                 additional_info = await response.json()
+                logger.warning(
+                    f"Couldn't extract delete request with url: {endpoint_url}, status code {response.status}"
+                )
                 raise http_exception(
                     response.status,
                     "Error during extracting query",
