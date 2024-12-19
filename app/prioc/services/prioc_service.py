@@ -1,3 +1,4 @@
+import math
 import asyncio
 
 import geopandas as gpd
@@ -119,6 +120,9 @@ class PriocService:
         )
 
         for key in list(territory_estimation.keys()):
+            if math.isnan(territory_estimation[key]["estimation"]):
+                territory_estimation.pop(key)
+                continue
             positive_services_ids = POSITIVE_SERVICE_CLEANING.json.get(key)
             negative_services_ids = NEGATIVE_SERVICE_CLEANING.json.get(key)
             if positive_services_ids:

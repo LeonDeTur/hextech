@@ -44,7 +44,7 @@ class TerritoryEstimator:
             n = len(ranks)
             total_score = 0
             for indicator, rank in ranks.items():
-                if ranks[indicator] > 3:
+                if ranks[indicator] < 3:
                     current_interpretation = await interpret_value(
                         actual=indicators[indicator],
                         target=current_object_indicators_min_val[indicator],

@@ -19,7 +19,8 @@ async def save_all_indicators_to_db(
     """
     Count all indicators and save them to db.
     """
-    logger.info(f"Started evaluating indicators with {save_params.scenario_id}")
+    logger.info(f"""Started evaluating indicators with scenario id {save_params.scenario_id} 
+    and territory id {save_params.territory_id}""")
     if save_params.background:
         background_tasks.add_task(indicators_savior_service.save_all_indicators, save_params)
         return SaveResponse(**{"msg": "Started indicators calculations and saving"})
