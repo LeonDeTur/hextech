@@ -5,7 +5,6 @@ from loguru import logger
 from shapely.geometry import shape
 
 from app.indicators_savior.indicators_savior_services.indicators_savior_api_service import indicators_savior_api_service
-from app.common.exceptions.http_exception_wrapper import http_exception
 from .dto import IndicatorsDTO
 from app.prioc.services import prioc_service
 from .indicators_savior_services.indicators_constants import objects_name_id_map
@@ -69,14 +68,6 @@ class IndicatorsSaviorService:
         Returns:
             None
         """
-
-        if save_params.territory_id != 1:
-            raise http_exception(
-                400,
-                "Territories with id not equal to 1 are not currently supported.",
-                _input=save_params.territory_id,
-                _detail={"supported_ids": [1]}
-            )
 
         territory = gpd.GeoDataFrame(geometry=[shape(save_params.territory.__dict__)], crs=4326)
         extract_list = [
