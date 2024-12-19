@@ -28,7 +28,6 @@ class GeneratorApiService:
         self.transport_frame_extractor = transport_frame_api_handler
         self.pop_frame_extractor = pop_frame_api_handler
         self.eco_frame_extractor = eco_frame_api_handler
-        self.put_counter = 0
         self.max_async_extractions = int(config.get("MAX_API_ASYNC_EXTRACTIONS"))
 
     async def get_territory_data(
@@ -258,9 +257,6 @@ class GeneratorApiService:
                 data=chunk,
                 max_concurrent_requests=self.max_async_extractions
             )
-
-            self.put_counter += self.max_async_extractions
-            print(self.put_counter)
 
 
 generator_api_service = GeneratorApiService()
