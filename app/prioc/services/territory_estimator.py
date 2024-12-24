@@ -1,6 +1,6 @@
 import geopandas as gpd
 
-from .constants import INDICATORS_WEIGHTS, OBJECT_INDICATORS_MIN_VAL
+from app.prioc.services.constants.constants import INDICATORS_WEIGHTS, OBJECT_INDICATORS_MIN_VAL
 
 
 class TerritoryEstimator:
@@ -36,11 +36,11 @@ class TerritoryEstimator:
 
         result_dict = {}
 
-        for key in INDICATORS_WEIGHTS.json.keys():
+        for key in INDICATORS_WEIGHTS.keys():
             result_dict[key] = {}
             interpretations = []
-            current_object_indicators_min_val = OBJECT_INDICATORS_MIN_VAL.json[key]
-            ranks = INDICATORS_WEIGHTS.json[key]
+            current_object_indicators_min_val = OBJECT_INDICATORS_MIN_VAL[key]
+            ranks = INDICATORS_WEIGHTS[key]
             n = len(ranks)
             total_score = 0
             for indicator, rank in ranks.items():

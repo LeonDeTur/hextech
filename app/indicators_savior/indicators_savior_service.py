@@ -17,7 +17,7 @@ class IndicatorsSaviorService:
     async def post_all(
             prioc_ter_estimation: dict,
             project_scenario_id: int,
-    ):
+    ) -> None:
 
         async_task_list = []
         for key in prioc_ter_estimation:
@@ -32,6 +32,34 @@ class IndicatorsSaviorService:
                 "value": value,
                 "comment": comment,
                 "information_source": "hextech/prioc",
+                "properties": {}
+            }
+            async_task_list.append(indicators_savior_api_service.put_indicator(first_to_put))
+
+        await asyncio.gather(*async_task_list)
+
+    @staticmethod
+    async def save_all_landuse(
+            project_scenario_id: int,
+    ) -> None:
+        """
+        Function posts
+        """
+
+        landuse_map = await indicators_savior_api_service.get_landuse_ids_names_map()
+        landuse_estimation = await indicators_savior_api_service.get_landuse_estimation(
+            project_scenario_id,
+        )
+        async_task_list = []
+        for key in landuse_estimation:
+            first_to_put = {
+                "indicator_id": int(landuse_map[key]),
+                "scenario_id": project_scenario_id,
+                "territory_id": None,
+                "hexagon_id": None,
+                "value": float(landuse_estimation[key]),
+                "comment": None,
+                "information_source": "landuse_det",
                 "properties": {}
             }
             async_task_list.append(indicators_savior_api_service.put_indicator(first_to_put))
@@ -81,6 +109,7 @@ class IndicatorsSaviorService:
                 region_id=save_params.territory_id,
                 project_scenario_id=save_params.scenario_id,
             ),
+            self.save_all_landuse(save_params.scenario_id),
             self.save_prioc_evaluations(save_params)
         ]
         await asyncio.gather(*extract_list)

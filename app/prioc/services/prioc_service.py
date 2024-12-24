@@ -11,7 +11,7 @@ from .hex_api_service import  hex_api_getter
 from .hex_cleaner import hex_cleaner
 from .hex_estimator import hex_estimator
 from .territory_estimator import territory_estimator
-from .constants import POSITIVE_SERVICE_CLEANING, NEGATIVE_SERVICE_CLEANING
+from app.prioc.services.constants.constants import POSITIVE_SERVICE_CLEANING, NEGATIVE_SERVICE_CLEANING
 
 
 class PriocService:
@@ -34,7 +34,7 @@ class PriocService:
         hexes = await hex_api_getter.get_hexes_with_indicators_by_territory()
         hexes_local_crs = hexes.estimate_utm_crs()
         hexes.to_crs(hexes_local_crs, inplace=True)
-        positive_services_list = POSITIVE_SERVICE_CLEANING.json.get(hex_params.object_type)
+        positive_services_list = POSITIVE_SERVICE_CLEANING.get(hex_params.object_type)
         cleaned_hexes = hexes
         if positive_services_list:
             positive_services = await hex_api_getter.get_positive_service_by_territory_id(
@@ -47,7 +47,7 @@ class PriocService:
                     cleaned_hexes,
                     positive_services
                 )
-        negative_services_list = NEGATIVE_SERVICE_CLEANING.json.get(hex_params.object_type)
+        negative_services_list = NEGATIVE_SERVICE_CLEANING.get(hex_params.object_type)
         if negative_services_list:
             negative_services = await hex_api_getter.get_negative_service_by_territory_id(
                 hex_params.territory_id,
@@ -123,8 +123,8 @@ class PriocService:
             if math.isnan(territory_estimation[key]["estimation"]):
                 territory_estimation.pop(key)
                 continue
-            positive_services_ids = POSITIVE_SERVICE_CLEANING.json.get(key)
-            negative_services_ids = NEGATIVE_SERVICE_CLEANING.json.get(key)
+            positive_services_ids = POSITIVE_SERVICE_CLEANING.get(key)
+            negative_services_ids = NEGATIVE_SERVICE_CLEANING.get(key)
             if positive_services_ids:
                 positive_services = await hex_api_getter.get_positive_service_by_territory_id(
                     territory_params.territory.__dict__,

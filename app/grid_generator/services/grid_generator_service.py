@@ -21,7 +21,7 @@ class GridGeneratorService:
     async def get_cleaning_gdf(
             territory_id: int,
             objects_ids: list[int]
-    ) -> gpd.GeoDataFrame:
+    ) -> gpd.GeoDataFrame | pd.DataFrame:
         """
         Function retrieves geometries to clean hexagons
 
@@ -212,10 +212,10 @@ class GridGeneratorService:
             for column in columns_to_iter:
                 extract_list.append(
                     {
-                    "indicator_id": mapped_name_id[column],
+                    "indicator_id": int(mapped_name_id[column]),
                     "scenario_id": 122,
                     "territory_id": None,
-                    "hexagon_id": row["hexagon_id"],
+                    "hexagon_id": int(row["hexagon_id"]),
                     "value": row[column],
                     "comment": "--",
                     "information_source": "hextech/grid_generator",

@@ -24,9 +24,9 @@ class PotentialEstimator:
             sum(
                 [
                     True for key, value in indicators_values.items()
-                    if value >= profiles.json[profile_name]["Критерии"][key]
+                    if value >= profiles[profile_name]["Критерии"][key]
                 ]
-            ) for profile_name in profiles.json.keys()
+            ) for profile_name in profiles.keys()
         ]
         return result
 
@@ -44,7 +44,7 @@ class PotentialEstimator:
             cur_potential = await self.estimate_potential(row.to_dict())
             result_list.append(cur_potential)
 
-        columns = list(profiles.json.keys())
+        columns = list(profiles.keys())
         hexes[columns] = result_list
         logger.info(f"Finished potential estimation with {len(hexes)} hexes")
 

@@ -10,7 +10,8 @@ from app.common.api_handler.api_handler import (
     eco_frame_api_handler,
     townsnet_api_handler,
     pop_frame_api_handler,
-    transport_frame_api_handler
+    transport_frame_api_handler,
+    landuse_det_api_handler
 )
 
 
@@ -149,6 +150,50 @@ class IndicatorsSaviorApiService:
                     headers=self.headers,
                     data=put_data,
                 )
+
+    @staticmethod
+    async def get_landuse_ids_names_map() -> dict:
+        """
+        Function extracgts landuse indicators data
+
+        Returns:
+            dict with landuse indicators data
+        """
+
+        result = {}
+        response = await urban_api_handler.get(
+            extra_url="/api/v1/indicators_by_parent",
+            params={"parent_id": 16}
+        )
+        for indicator in response:
+            result[indicator["name_full"]] = indicator["indicator_id"]
+        response = await urban_api_handler.get(
+            "/api/v1/indicators/16"
+        )
+        result["name_full"] = response["indicator_id"]
+        return result
+
+    @staticmethod
+    async def get_landuse_estimation(
+            scenario_id: int,
+        ):
+        """
+        Function extracts landuse estimation for provided scenario and territory
+
+        Args:
+            scenario_id (int): scenario id from urban_db
+
+        Returns:
+            dict with landuse indicators data
+        """
+
+        response = await landuse_det_api_handler.get(
+            extra_url=f"/api/v1/projects{scenario_id}/landuse_persentages",
+            params={
+                "scenario_id": scenario_id,
+            }
+        )
+        return response
 
 
 indicators_savior_api_service = IndicatorsSaviorApiService()

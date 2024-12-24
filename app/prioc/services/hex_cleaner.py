@@ -1,7 +1,7 @@
 import geopandas as gpd
 import pandas as pd
 
-from .constants import OBJECT_INDICATORS_MIN_VAL
+from app.prioc.services.constants.constants import OBJECT_INDICATORS_MIN_VAL
 
 
 class HexCleaner:
@@ -39,7 +39,7 @@ class HexCleaner:
             drop_list = drop_list + neighbours.index.to_list()
 
         drop_list = list(set(drop_list))
-        cleaned = hexagons[~hexagons.index.isin(drop_list)]
+        cleaned = hexagons[~hexagons.index.isin(drop_list)].copy()
         return cleaned
 
     @staticmethod
@@ -121,9 +121,11 @@ class HexCleaner:
                     return False
             return True
 
-        values = OBJECT_INDICATORS_MIN_VAL.json[object_name]
+        values = OBJECT_INDICATORS_MIN_VAL[object_name]
+        hexagons = hexagons.copy()
         hexagons["mask"] = hexagons.apply(clean_row, min_map=values, axis=1)
-        hexagons = hexagons[hexagons["mask"] > 0].drop("mask", axis=1)
+        hexagons = hexagons[hexagons["mask"] > 0]
+        hexagons.drop(columns="mask", inplace=True)
         return hexagons
 
 
