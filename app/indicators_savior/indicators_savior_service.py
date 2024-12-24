@@ -113,7 +113,7 @@ class IndicatorsSaviorService:
             self.save_prioc_evaluations(save_params)
         ]
         await asyncio.gather(*extract_list)
-        logger.info(f"Finished saving all indicators with scenario id {save_params.scenario_id}")
+        logger.info(f"Finished saving all indicators with params {save_params.__dict__}")
         return {"msg": "Successfully saved all indicators"}
 
 
