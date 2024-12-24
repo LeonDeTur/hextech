@@ -188,10 +188,7 @@ class IndicatorsSaviorApiService:
         """
 
         response = await landuse_det_api_handler.get(
-            extra_url=f"/api/v1/projects{scenario_id}/landuse_persentages",
-            params={
-                "scenario_id": scenario_id,
-            }
+            extra_url=f"/api/projects/{scenario_id}/landuse_percentages",
         )
         return response
 
