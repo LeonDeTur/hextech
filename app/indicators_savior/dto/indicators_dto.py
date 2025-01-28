@@ -12,22 +12,16 @@ with open("app/prioc/dto/example_territory.json", "r") as et:
 
 class IndicatorsDTO(BaseModel):
 
+    project_id: int = Field(
+        ...,
+        examples=[72]
+    )
     scenario_id: int = Field(
         ...,
-        examples=[72],
-        description="Project ID"
-    )
-    territory_id: int = Field(
-        ...,
-        examples=[1],
-        description="The id of the territory"
+        examples=[128],
+        description="Scenario to create or update indicators for"
     )
     background: bool = Field(...,
                              examples=[False],
                              description="If 'true' calculates in background"
                              )
-    territory: Geometry = Field(
-        ...,
-        examples=[example_territory],
-        description="Territory geometry"
-    )

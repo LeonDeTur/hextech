@@ -20,15 +20,8 @@ async def save_all_indicators_to_db(
     """
     Count all indicators and save them to db.
     """
-    logger.info(f"""Started evaluating indicators with scenario id {save_params.scenario_id} 
-    and territory id {save_params.territory_id}""")
-    if save_params.territory_id != 1:
-        raise http_exception(
-            400,
-            "Territories with id not equal to 1 are not currently supported.",
-            _input=save_params.territory_id,
-            _detail={"supported_ids": [1]}
-        )
+    logger.info(f"""Started evaluating indicators with scenario id {save_params.project_id} 
+    and territory id {save_params.scenario_id}""")
 
     if save_params.background:
         logger.info(f"Started background tasks for indicators with scenario params {save_params.__dict__}")

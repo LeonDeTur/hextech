@@ -95,26 +95,31 @@ class PriocService:
 
         return clustered_hexes
 
+    #ToDO update to saving methods normally
     @staticmethod
     async def get_territory_estimation(
-            territory_params: TerritoryDTO | IndicatorsDTO,
+            territory: dict | None = None,
+            territory_id: int | None = None,
     ) -> dict[str, float]:
         """
         Generates territory evaluation with available objects
 
         Args:
-            territory_params (TerritoryDTO): Territory query parameters
-
+            territory (dict): Territory geometry dict
+            territory_id (int): Regional territory id
         Returns:
             dict: Dictionary with calculated territory values
         """
 
-        territory = gpd.GeoDataFrame([1], geometry=[shape(territory_params.territory.__dict__)], crs=4326)
-        territory_local_crs = territory.estimate_utm_crs()
-        territory.to_crs(territory_local_crs, inplace=True)
+        if territory:
+            territory_gdf = gpd.GeoDataFrame(geometry=[shape(territory)], crs=4326)
+        else:
+            territory_gdf = gpd.GeoDataFrame(geometry=[shape(territory.__dict__)], crs=4326)
+        territory_local_crs = territory_gdf.estimate_utm_crs()
+        territory_gdf.to_crs(territory_local_crs, inplace=True)
         hexagons = await hex_api_getter.get_hexes_with_indicators_by_territory()
         hexagons.to_crs(territory_local_crs, inplace=True)
-        hexagons = hexagons.clip(territory.geometry)
+        hexagons = hexagons.clip(territory_gdf.geometry)
         territory_estimation = await territory_estimator.estimate_territory(
             hexagons
         )
@@ -127,7 +132,7 @@ class PriocService:
             negative_services_ids = NEGATIVE_SERVICE_CLEANING.get(key)
             if positive_services_ids:
                 positive_services = await hex_api_getter.get_positive_service_by_territory_id(
-                    territory_params.territory.__dict__,
+                    territory,
                 )
                 if not positive_services.empty:
                     positive_services.to_crs(territory_local_crs, inplace=True)
@@ -137,7 +142,7 @@ class PriocService:
                 positive_services = None
             if negative_services_ids:
                 negative_services = await hex_api_getter.get_negative_service_by_territory_id(
-                    territory_params.territory_id,
+                    territory_id,
                     negative_services_ids
                 )
                 if not negative_services.empty:
@@ -148,7 +153,7 @@ class PriocService:
                 negative_services = None
 
             check_result = await hex_cleaner.clean_estimation_dict_by_territory(
-                territory,
+                territory_gdf,
                 positive_services,
                 negative_services
             )

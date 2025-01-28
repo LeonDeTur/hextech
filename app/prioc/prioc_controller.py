@@ -51,6 +51,9 @@ async def get_territory_value(
     """
 
     logger.info(f"Starting /prioc//territory with prams{territory_params.__dict__}")
-    result = await prioc_service.get_territory_estimation(territory_params)
+    result = await prioc_service.get_territory_estimation(
+        territory=territory_params.territory,
+        territory_id=territory_params.territory_id,
+    )
     logger.info(f"Finished /prioc/territory with prams {territory_params.__dict__}")
     return result
