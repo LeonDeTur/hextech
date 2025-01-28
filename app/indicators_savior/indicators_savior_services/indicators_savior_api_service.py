@@ -4,8 +4,10 @@ import json
 import aiohttp
 import geopandas as gpd
 import pandas as pd
+from loguru import logger
 
 from app.common import config
+from app.common.exceptions.http_exception_wrapper import http_exception
 from app.common.api_handler.api_handler import (
     urban_api_handler,
     eco_frame_api_handler,
@@ -234,7 +236,6 @@ class IndicatorsSaviorApiService:
     async def get_recultivation_marks(
         self,
         area: dict,
-        territory_id: int,
         base_scenario_id: int,
         target_scenario_id: int,
     ) -> None:
@@ -249,7 +250,7 @@ class IndicatorsSaviorApiService:
             None
         """
 
-        async def _form_source_params(sources: list[dict]) -> dict:
+        async def _form_source_params(sources: list[dict]) -> dict | None:
             source_names = [i["source"] for i in sources]
             source_data_df = pd.DataFrame(sources)
             if "PZZ" in source_names:
@@ -260,10 +261,12 @@ class IndicatorsSaviorApiService:
                 return source_data_df.loc[
                     source_data_df[source_data_df["source"] == "OSM"]["year"].idxmax()
                 ].to_dict()
-            else:
+            elif "User" in source_names:
                 return source_data_df.loc[
                     source_data_df[source_data_df["source"] == "User"]["year"].idxmax()
                 ].to_dict()
+            else:
+                return None
 
         async def _map_matrix_names(matrix_data: dict[str, list]) -> dict[str, list]:
             renamed_recultivation_matrix = {}
@@ -286,14 +289,33 @@ class IndicatorsSaviorApiService:
             headers=self.headers,
         )
         base_source_params = await _form_source_params(base_zones_source)
+        if not base_source_params:
+            logger.warning(f"No source found for base scenario with {base_scenario_id}")
+            raise http_exception(
+                404,
+                f"No pzz source found for base scenario",
+                _input=base_zones_source,
+                _detail={
+                    "scenario_id": base_scenario_id,
+                },
+            )
         target_source_params = await _form_source_params(target_zones_source)
+        if not target_source_params:
+            logger.warning(f"No source found for target scenario with {base_scenario_id}")
+            raise http_exception(
+                404,
+                f"No pzz source found for target scenario",
+                _input=target_zones_source,
+                _detail={"scenario_id": target_scenario_id},
+            )
+
         base_func_zones = await urban_api_handler.get(
             extra_url=f"/api/v1/scenarios/{base_scenario_id}/functional_zones",
             headers=self.headers,
             params=base_source_params,
         )
         func_zones = await urban_api_handler.get(
-            extra_url="/api/v1/scenarios/128/functional_zones",
+            extra_url=f"/api/v1/scenarios/{target_scenario_id}/functional_zones",
             headers=self.headers,
             params=target_source_params,
         )
@@ -301,7 +323,7 @@ class IndicatorsSaviorApiService:
         target_ids = set([i["properties"]["functional_zone_type"]["id"] for i in func_zones["features"]])
         matrix_labels = [str(i) for i in (base_ids | target_ids)]
         cost_matrix = await urban_api_handler.get(
-            extra_url=f"/api/v1/profiles_reclamation/matrix?labels={','.join(matrix_labels)}&territory_id={territory_id}",
+            extra_url=f"/api/v1/profiles_reclamation/matrix?labels={','.join(matrix_labels)}",
         )
         recultivation_matrix = await _map_matrix_names(cost_matrix)
 

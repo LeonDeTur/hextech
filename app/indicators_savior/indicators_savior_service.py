@@ -59,7 +59,6 @@ class IndicatorsSaviorService:
 
         recultivation_data = await indicators_savior_api_service.get_recultivation_marks(
             area=area,
-            territory_id=territory_id,
             base_scenario_id=base_scenario_id,
             target_scenario_id=target_scenario_id
         )
