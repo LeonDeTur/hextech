@@ -38,8 +38,7 @@ class PriocService:
         cleaned_hexes = hexes
         if positive_services_list:
             positive_services = await hex_api_getter.get_positive_service_by_territory_id(
-                hex_params.territory_id,
-                positive_services_list,
+                gpd.GeoDataFrame(geometry=[hexes.union_all()], crs=hexes_local_crs).to_crs(4326).to_geo_dict()["features"][0]["geometry"],
             )
             if not positive_services.empty:
                 positive_services.to_crs(hexes_local_crs, inplace=True)
