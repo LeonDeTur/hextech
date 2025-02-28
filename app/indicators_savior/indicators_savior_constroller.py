@@ -3,7 +3,6 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, BackgroundTasks
 from loguru import logger
 
-from app.common.exceptions.http_exception_wrapper import http_exception
 from .dto import IndicatorsDTO
 from .shema import SaveResponse
 from .indicators_savior_service import indicators_savior_service
@@ -21,7 +20,7 @@ async def save_all_indicators_to_db(
     Count all indicators and save them to db.
     """
     logger.info(f"""Started evaluating indicators with scenario id {save_params.project_id} 
-    and territory id {save_params.scenario_id}""")
+    and scenario id {save_params.scenario_id}""")
 
     if save_params.background:
         logger.info(f"Started background tasks for indicators with scenario params {save_params.__dict__}")

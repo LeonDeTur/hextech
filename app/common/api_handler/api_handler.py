@@ -1,3 +1,6 @@
+import asyncio
+import json
+
 import aiohttp
 from loguru import logger
 
@@ -102,10 +105,17 @@ class AsyncApiHandler:
                         f"Posted data with url: {response.url} and status: {response.status}"
                     )
                     return await response.json()
-                additional_info = await response.json()
                 logger.warning(
-                    f"Couldn't extract post request with url: {endpoint_url}, status code {response.status}"
+                    f"""
+                    Couldn't extract post request with url: {endpoint_url}, status code {response.status}
+                    request_params: {params}
+                    data: {data}
+                    """
                 )
+                if response.status == 500:
+                    additional_info = await response.text()
+                else:
+                    additional_info = await response.json()
                 raise http_exception(
                     response.status,
                     "Error during extracting query",
@@ -148,7 +158,9 @@ class AsyncApiHandler:
             ) as response:
                 if response.status in (200, 201):
                     logger.info(
-                        f"Put data with url: {response.url} and status: {response.status}"
+                        f"""Put data with url: {response.url} and status: {response.status}
+                        params: {params}
+                        and data {data}"""
                     )
                     return await response.json()
                 logger.warning(
@@ -194,6 +206,62 @@ class AsyncApiHandler:
                 additional_info = await response.json()
                 logger.warning(
                     f"Couldn't extract delete request with url: {endpoint_url}, status code {response.status}"
+                )
+                raise http_exception(
+                    response.status,
+                    "Error during extracting query",
+                    _input={"url": endpoint_url, "params": params},
+                    _detail=additional_info
+                )
+
+    async def townsnet_post(
+            self,
+            extra_url: str,
+            data: dict | list,
+            params: dict = None,
+            headers: dict = None,
+    ) -> dict:
+        """
+        Function extracts post query within extra url
+
+        Args:
+            extra_url (str): Endpoint url
+            data (dict): Data to post | list
+            params (dict): Query parameters. Default to None
+            headers (dict): HTTP headers. Default to None
+
+        Returns:
+            dict: Query result in dict format | list
+        """
+
+        endpoint_url = self.base_url + extra_url
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                url=endpoint_url,
+                headers=headers,
+                params=params,
+                json=data,
+                timeout=int(config.get("GENERAL_TIMEOUT"))
+            ) as response:
+                if response.status in (200, 201):
+                    logger.info(
+                        f"Posted data with url: {response.url} and status: {response.status}"
+                    )
+                    return await response.json()
+                if response.status == 500:
+                    additional_info = await response.text()
+                elif response.status == 404:
+                    response_info = await response.json()
+                    if response_info.get("detail") ==
+                    await asyncio.sleep(600)
+                else:
+                    additional_info = await response.json()
+                logger.warning(
+                    f"""
+                                    Couldn't extract post request with url: {endpoint_url}, status code {response.status}
+                                    request_params: {params}
+                                    data: {data}
+                                    """
                 )
                 raise http_exception(
                     response.status,

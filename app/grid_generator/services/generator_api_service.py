@@ -182,7 +182,7 @@ class GeneratorApiService:
 
         response = await self.pop_frame_extractor.post(
             extra_url=f"/population/get_population_criterion_score",
-            params={"territory_id": territory_id},
+            params={"region_id": territory_id},
             data=json_data,
             headers=self.headers
         )

@@ -1,3 +1,5 @@
+from collections import ChainMap
+
 import geopandas as gpd
 from loguru import logger
 
@@ -8,7 +10,7 @@ class PotentialEstimator:
 
     @staticmethod
     async def estimate_potential(
-            indicators_values: dict[str, int]
+            indicators_values: dict[str, int] | ChainMap,
     ) -> list[int]:
         """
         Function estimates potential for territory based on indicators
@@ -17,7 +19,7 @@ class PotentialEstimator:
             indicators_values: dictionary of indicators values
 
         Returns:
-            int: estimated value of potential
+            list[int]: estimated value of potential
         """
 
         result = [
@@ -28,6 +30,22 @@ class PotentialEstimator:
                 ]
             ) for profile_name in profiles.keys()
         ]
+        return result
+
+    @staticmethod
+    async def estimate_potentials_as_dict(
+            indicators_values: dict,
+    ):
+
+        result = {
+            profile_name: sum(
+                [
+                    value >= profiles[profile_name]["Критерии"][key]
+                    for key, value in indicators_values.items()
+                ]
+            ) for profile_name in profiles.keys()
+        }
+
         return result
 
     async def estimate_potentials(

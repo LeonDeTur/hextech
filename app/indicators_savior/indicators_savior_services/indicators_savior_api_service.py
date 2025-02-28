@@ -16,6 +16,7 @@ from app.common.api_handler.api_handler import (
     transport_frame_api_handler,
     landuse_det_api_handler
 )
+
 from .recaltivation_api_handler import recultivation_api_handler
 
 
@@ -88,7 +89,7 @@ class IndicatorsSaviorApiService:
         json_territory = json.loads(territory.to_json())
         tasks = [
             pop_frame_api_handler.put(
-                extra_url="/PopFrame/save_popframe_evaluation",
+                extra_url="/popframe/save_popframe_evaluation",
                 params={
                     "region_id": region_id,
                     "project_scenario_id": project_scenario_id,
@@ -213,7 +214,7 @@ class IndicatorsSaviorApiService:
         """
 
         response = await landuse_det_api_handler.get(
-            extra_url=f"/api/projects/{scenario_id}/landuse_percentages",
+            extra_url=f"/api/scenarios/{scenario_id}/landuse_percentages",
         )
         return response
 
@@ -433,6 +434,144 @@ class IndicatorsSaviorApiService:
             data=request_json,
         )
         return response
+
+    async def get_social_provision_evaluation(
+            self,
+            territory_id: int,
+            json_data: dict | list
+    ):
+        """
+        Function retrieves evaluation for social provision
+        Args:
+            territory_id (int): Territory ID
+            json_data (dict): Data for evaluation
+
+        Returns:
+            dict | list: Evaluated data
+        """
+
+        logger.info(f"Started provision extraction for {len(json_data['features'])} territories")
+        response = await townsnet_api_handler.post(
+            extra_url=f"/provision/{territory_id}/get_evaluation",
+            data=json_data,
+            headers=self.headers
+        )
+
+        return {"Социальное обеспечение": response[0]}
+
+    async def get_engineering_evaluation(
+            self,
+            territory_id: int,
+            json_data: dict | list
+    ) -> dict | list:
+        """
+        Function retrieves evaluation for engineering
+        Args:
+            territory_id (int): Territory ID
+            json_data (dict): Data for evaluation
+
+        Returns:
+            dict | list: Evaluated data
+        """
+
+        response = await townsnet_api_handler.post(
+            extra_url=f"/engineering/{territory_id}/evaluate_geojson",
+            data=json_data,
+            headers=self.headers
+        )
+        return {"Обеспечение инженерной инфраструктурой": response[0]}
+
+    @staticmethod
+    async def get_transport_evaluation(
+            territory_id: int,
+            json_data: dict | list
+    ) -> dict | list:
+        """
+        Function retrieves transport frame
+        Args:
+            territory_id (int): Territory ID
+            json_data (dict): Data for evaluation
+
+        Returns:
+            dict | list: Transport frame
+        """
+
+        response = await transport_frame_api_handler.post(
+            extra_url=f"/{territory_id}/transport_criteria",
+            data=json_data
+        )
+        return {"Транспортное обеспечение": response[0]}
+
+    @staticmethod
+    async def get_ecological_evaluation(
+            territory_id: int,
+            json_data: dict | list
+    ) -> dict | list:
+        """
+        Function retrieves evaluation for ecological
+        Args:
+            territory_id (int): Territory ID
+            json_data (dict): Data for evaluation
+
+        Returns:
+            dict | list: Evaluated data
+        """
+
+        eco_feature_collection = {"feature_collection": json_data}
+        response = await eco_frame_api_handler.post(
+            extra_url=f"/api/v1/ecodonut/{territory_id}/mark",
+            data=eco_feature_collection
+        )
+        result = [item["relative_mark"] for item in response]
+        return {"Экологическая ситуация": result[0]}
+
+    async def get_population_evaluation(
+            self,
+            territory_id: int,
+            json_data: dict | list
+    ) -> dict | list:
+        """
+        Function retrieves evaluation for population
+        Args:
+            territory_id (int): Territory ID
+            json_data (dict): Data for evaluation
+
+        Returns:
+            dict | list: Evaluated data
+        """
+
+        response = await pop_frame_api_handler.post(
+            extra_url=f"/population/get_population_criterion_score",
+            params={"region_id": territory_id},
+            data=json_data,
+            headers=self.headers
+        )
+        return {"Население": response[0]}
+
+    @staticmethod
+    async def get_name_id_map(
+            parent_id: int
+    ):
+        """
+        Function retrieves name_id map by indicator parent id
+
+        Args:
+            parent_id (int): Parent ID
+        Returns:
+            dict: Name ID map and extra info map
+        """
+
+        response = urban_api_handler.get(
+            extra_url="/api/v1/indicators_by_parent",
+            params={
+                "parent_id": parent_id
+            }
+        )
+
+        result = {}
+        for i in response:
+            result[i["name_full"]] = i["indicator_id"]
+        return result
 
 
 indicators_savior_api_service = IndicatorsSaviorApiService()
