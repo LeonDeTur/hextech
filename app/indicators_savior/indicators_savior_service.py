@@ -105,7 +105,6 @@ class IndicatorsSaviorService:
                 json_data=territory,
             )
         ]
-
         indicators_values = await asyncio.gather(*tasks)
         indicators_dict = {}
         for indicator in indicators_values:
@@ -113,6 +112,7 @@ class IndicatorsSaviorService:
                 indicators_dict[key] = value
         result_dict = await potential_estimator.estimate_potentials_as_dict(indicators_dict)
         await self.post_potentials(result_dict, scenario_id)
+        print("Saved all potential indicators")
 
 
     @staticmethod
@@ -197,6 +197,7 @@ class IndicatorsSaviorService:
             async_task_list.append(indicators_savior_api_service.put_indicator(first_to_put))
 
         await asyncio.gather(*async_task_list)
+        print("Saved all landuse indicators")
 
     async def save_prioc_evaluations(
             self,
@@ -220,6 +221,7 @@ class IndicatorsSaviorService:
             territory_id=territory_id,
         )
         await self.post_all(evaluations, scenario_id)
+        print("Saved prioc evaluations")
 
     async def save_all_indicators(
             self,
@@ -256,25 +258,51 @@ class IndicatorsSaviorService:
         #         scenario_id=save_params.scenario_id,
         #         territory_id=territory_id,
         #         territory=territory_data["geometry"],
-        #     ),
+        #     ),s
         #     self.save_recultivation(
         #         area=territory_data["geometry"],
         #         base_scenario_id=base_scenario,
         #         target_scenario_id=save_params.scenario_id
         #     ),
         #     self.save_potential(
-        #         scenario_id=save_params.scenario_id,
-        #         territory_id=territory_id,
-        #         territory=territory_geojson
+        #     scenario_id=save_params.scenario_id,
+        #     territory_id=territory_id,
+        #     territory=territory_geojson
         #     )
         # ]
         # await asyncio.gather(*extract_list)
-        # logger.info(f"Finished saving all indicators with params {save_params.__dict__}")
+        await indicators_savior_api_service.save_net_indicators(
+                territory=territory,
+                region_id=territory_id,
+                project_scenario_id=save_params.scenario_id
+            )
+        await indicators_savior_api_service.save_eco_frame_estimation(
+                territory=territory_data["geometry"],
+                region_id=territory_id,
+                project_scenario_id=save_params.scenario_id,
+            )
+        await self.save_all_landuse(save_params.scenario_id)
+        await self.save_prioc_evaluations(
+                scenario_id=save_params.scenario_id,
+                territory_id=territory_id,
+                territory=territory_data["geometry"],
+            )
+        await self.save_recultivation(
+                area=territory_data["geometry"],
+                base_scenario_id=base_scenario,
+                target_scenario_id=save_params.scenario_id
+            )
         await self.save_potential(
             scenario_id=save_params.scenario_id,
             territory_id=territory_id,
             territory=territory_geojson
-        )
+            )
+        logger.info(f"Finished saving all indicators with params {save_params.__dict__}")
+        # await self.save_potential(
+        #     scenario_id=save_params.scenario_id,
+        #     territory_id=territory_id,
+        #     territory=territory_geojson
+        # )
         return {"msg": "Successfully saved all indicators"}
 
 

@@ -116,7 +116,8 @@ class PriocService:
             territory_gdf = gpd.GeoDataFrame(geometry=[shape(territory.__dict__)], crs=4326)
         territory_local_crs = territory_gdf.estimate_utm_crs()
         territory_gdf.to_crs(territory_local_crs, inplace=True)
-        hexagons = await hex_api_getter.get_hexes_with_indicators_by_territory()
+        base_scenario_id = await hex_api_getter.get_regional_base_scenario(territory_id)
+        hexagons = await hex_api_getter.get_hexes_with_indicators_by_territory(base_scenario_id)
         hexagons.to_crs(territory_local_crs, inplace=True)
         hexagons = hexagons.clip(territory_gdf.geometry)
         territory_estimation = await territory_estimator.estimate_territory(

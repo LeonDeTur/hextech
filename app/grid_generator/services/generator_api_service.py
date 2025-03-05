@@ -1,6 +1,6 @@
 from loguru import logger
 
-from app.common import urban_api_handler, config
+from app.common import urban_api_handler, config, http_exception
 from app.common.api_handler.api_handler import (
     transport_frame_api_handler,
     townsnet_api_handler,
@@ -257,6 +257,27 @@ class GeneratorApiService:
                 data=chunk,
                 max_concurrent_requests=self.max_async_extractions
             )
+
+    async def get_regional_base_scenario(
+            self,
+            territory_id: int
+    ) -> dict | list:
+
+        response = await self.urban_extractor.get(
+            extra_url=f"/api/v1/projects?only_own=false&is_regional=true&ordering=asc&page=1&page_size=1000",
+            params={}
+        )
+        for i in response["results"]:
+            if i["territory"]["id"] == territory_id:
+                return i["base_scenario"]["id"]
+        raise http_exception(
+            status_code=404,
+            msg="No regional base scenario found",
+            _input=territory_id,
+            _detail={
+                "availabled_project_info": response
+            }
+        )
 
 
 generator_api_service = GeneratorApiService()

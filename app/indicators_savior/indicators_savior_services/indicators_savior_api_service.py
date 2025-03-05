@@ -87,44 +87,79 @@ class IndicatorsSaviorApiService:
         """
 
         json_territory = json.loads(territory.to_json())
-        tasks = [
-            pop_frame_api_handler.put(
-                extra_url="/popframe/save_popframe_evaluation",
-                params={
-                    "region_id": region_id,
-                    "project_scenario_id": project_scenario_id,
-                },
-                headers=self.headers,
-                data=json_territory,
-            ),
-            transport_frame_api_handler.post(
-                extra_url=f"/{region_id}/transport_criteria_project",
-                params={
-                    "region_id": region_id,
-                    "project_scenario_id": project_scenario_id,
-                },
-                headers=self.headers,
-                data=json_territory,
-            ),
-            townsnet_api_handler.post(
-                extra_url=f"/provision/{region_id}/evaluate_project",
-                params={
-                    "project_scenario_id": project_scenario_id,
-                },
-                headers=self.headers,
-                data=json_territory,
-            ),
-            townsnet_api_handler.put(
-                extra_url=f"/engineering/{region_id}/evaluate_project",
-                params={
-                    "project_scenario_id": project_scenario_id,
-                },
-                headers=self.headers,
-                data=json_territory,
-            )
-        ]
+        # tasks = [
+        #     pop_frame_api_handler.put(
+        #         extra_url="/popframe/save_popframe_evaluation",
+        #         params={
+        #             "region_id": region_id,
+        #             "project_scenario_id": project_scenario_id,
+        #         },
+        #         headers=self.headers,
+        #         data=json_territory,
+        #     ),
+        #     transport_frame_api_handler.post(
+        #         extra_url=f"/{region_id}/transport_criteria_project",
+        #         params={
+        #             "region_id": region_id,
+        #             "project_scenario_id": project_scenario_id,
+        #         },
+        #         headers=self.headers,
+        #         data=json_territory,
+        #     ),
+        #     townsnet_api_handler.post(
+        #         extra_url=f"/provision/{region_id}/evaluate_project",
+        #         params={
+        #             "project_scenario_id": project_scenario_id,
+        #         },
+        #         headers=self.headers,
+        #         data=json_territory,
+        #     ),
+        #     townsnet_api_handler.put(
+        #         extra_url=f"/engineering/{region_id}/evaluate_project",
+        #         params={
+        #             "project_scenario_id": project_scenario_id,
+        #         },
+        #         headers=self.headers,
+        #         data=json_territory,
+        #     )
+        # ]
 
-        await asyncio.gather(*tasks)
+        await pop_frame_api_handler.put(
+            extra_url="/popframe/save_popframe_evaluation",
+            params={
+                "region_id": region_id,
+                "project_scenario_id": project_scenario_id,
+            },
+            headers=self.headers,
+            data=json_territory,
+        )
+        await transport_frame_api_handler.post(
+            extra_url=f"/{region_id}/transport_criteria_project",
+            params={
+                "region_id": region_id,
+                "project_scenario_id": project_scenario_id,
+            },
+            headers=self.headers,
+            data=json_territory,
+        )
+        await townsnet_api_handler.post(
+            extra_url=f"/provision/{region_id}/evaluate_project",
+            params={
+                "project_scenario_id": project_scenario_id,
+            },
+            headers=self.headers,
+            data=json_territory,
+        )
+        await townsnet_api_handler.put(
+            extra_url=f"/engineering/{region_id}/evaluate_project",
+            params={
+                "project_scenario_id": project_scenario_id,
+            },
+            headers=self.headers,
+            data=json_territory,
+        )
+
+        print("Saved all net indicators")
 
     async def save_eco_frame_estimation(
             self,
@@ -176,6 +211,8 @@ class IndicatorsSaviorApiService:
                     headers=self.headers,
                     data=put_data,
                 )
+
+        print("Saved ecoframe indicators")
 
     @staticmethod
     async def get_landuse_ids_names_map() -> dict:
@@ -561,10 +598,11 @@ class IndicatorsSaviorApiService:
             dict: Name ID map and extra info map
         """
 
-        response = urban_api_handler.get(
+        response = await urban_api_handler.get(
             extra_url="/api/v1/indicators_by_parent",
             params={
-                "parent_id": parent_id
+                "parent_id": parent_id,
+                "get_all_subtree": "true"
             }
         )
 

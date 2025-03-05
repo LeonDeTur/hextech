@@ -5,6 +5,7 @@ import geopandas as gpd
 import pandas as pd
 from shapely.geometry import shape
 from loguru import logger
+from tqdm import tqdm
 
 from .generator_api_service import generator_api_service
 from .grid_generator import grid_generator
@@ -133,8 +134,7 @@ class GridGeneratorService:
             grid.to_crs(4326, inplace=True)
         feature_collection_grid = json.loads(grid.to_json())
 
-        #ToDo Rewrite when other regions will be available
-        if territory_id != 1:
+        if territory_id not in await params_validator.extract_current_regions():
             raise http_exception(
                 400,
                 msg="Territory IDs except 1 are not implemented in connected apies",
@@ -155,10 +155,21 @@ class GridGeneratorService:
             territory_id=territory_id,
             geojson_data=feature_collection_grid,
         )
-
+        grid.drop_duplicates("geometry", inplace=True)
         for result in results:
             key, item = zip(*result.items())
-            grid[key[0]] = item[0]
+            try:
+                if len(item) > len(grid):
+                    item = item[:len(grid)]
+                grid[key[0]] = item[0]
+            except ValueError as e:
+                logger.error(f"Error during indicators extraction: {str(e)}")
+                raise http_exception(
+                    status_code=500,
+                    msg=f"Error during indicators extraction",
+                    _input={"key": key, "item": item},
+                    _detail={"Error": e.__str__()},
+                )
         return grid
 
     async def generate_grid_with_indicators(
@@ -175,7 +186,7 @@ class GridGeneratorService:
             dict: The generated hexagonal grid in geojson format or dict with additional information.
         """
 
-        if territory_id != 1:
+        if territory_id not in await params_validator.extract_current_regions():
             raise http_exception(
                 400,
                 msg="No territories supported accept LO with id=1",
@@ -196,6 +207,7 @@ class GridGeneratorService:
         Function rights hexagons indicators to db
         """
 
+        regional_scenario = await generator_api_service.get_regional_base_scenario(territory_id)
         hexagons_geojson = await generator_api_service.get_hexes_from_db(territory_id)
         grid = gpd.GeoDataFrame.from_features(hexagons_geojson, crs=4326)
         grid_with_indicators = await self.calculate_grid_indicators(grid, territory_id)
@@ -208,12 +220,12 @@ class GridGeneratorService:
         df_to_put = bounded_hexagons.drop(columns=["geometry", "properties"])
         columns_to_iter = list(df_to_put.drop(columns="hexagon_id").columns)
         extract_list = []
-        for index, row in df_to_put.iterrows():
+        for index, row in tqdm(df_to_put.iterrows(), desc="Uploading hexagons to db"):
             for column in columns_to_iter:
                 extract_list.append(
                     {
                     "indicator_id": int(mapped_name_id[column]),
-                    "scenario_id": 122,
+                    "scenario_id": regional_scenario,
                     "territory_id": None,
                     "hexagon_id": int(row["hexagon_id"]),
                     "value": row[column],

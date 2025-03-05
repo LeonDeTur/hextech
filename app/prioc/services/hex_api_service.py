@@ -41,13 +41,15 @@ class HexApiService:
         self.scenarios_url = scenarios_url
         self.physical = physical
 
-    # ToDo rewrite to other scenarios ids and make more flexible
+    # ToDo make more flexible
     async  def get_hexes_with_indicators_by_territory(
             self,
+            regional_scenario_id: int
     ) -> gpd.GeoDataFrame:
         """
         Function retrieves hexagons layer with indicators
-
+        Args:
+            regional_scenario_id (int): Regional scenario ID
         Returns:
             gpd.GeoDataFrame: Hexagons with indicators values as layers attributes in 4326 crs
         """
@@ -56,7 +58,7 @@ class HexApiService:
             current_list = [row["indicators"]][0]
             return [i["value"] for i in current_list if i["name_full"] in indicators_names]
 
-        url = f"{self.scenarios_url}/122/indicators_values/hexagons"
+        url = f"{self.scenarios_url}/{regional_scenario_id}/indicators_values/hexagons"
         response = await self.extractor.get(
             extra_url=url,
         )
@@ -138,6 +140,28 @@ class HexApiService:
             return result_gdf
         result_gdf = gpd.GeoDataFrame()
         return result_gdf
+
+    @staticmethod
+    async def get_regional_base_scenario(territory_id: int) -> int:
+        """
+        Function retrieves regional base scenario by territory id
+        Args:
+            territory_id (int): Territory ID
+        Returns:
+            int: Base scenario
+        """
+
+        response = await urban_api_handler.get(
+            extra_url="/api/v1/projects",
+            params={
+                "only_own": "false",
+                "is_regional": "true",
+                "territory_id": territory_id,
+                "page": 1,
+                "page_size": 1
+            }
+        )
+        return response["results"][0]["base_scenario"]["id"]
 
 
 hex_api_getter = HexApiService()
