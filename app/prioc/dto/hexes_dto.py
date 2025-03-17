@@ -2,6 +2,17 @@ from pydantic import BaseModel, Field
 from typing import Literal
 
 
+prioc_objects_types = [
+        "Медицинский комплекс",
+        "Бизнес-кластер",
+        "Пром объект",
+        "Логистическо-складской комплекс",
+        "Порт",
+        "Кампус университетский",
+        "Тур база",
+    ]
+
+
 class HexesDTO(BaseModel):
 
     territory_id: int = Field(

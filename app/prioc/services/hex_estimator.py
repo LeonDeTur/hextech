@@ -6,7 +6,7 @@ import hdbscan
 import networkx as nx
 import pandas as pd
 
-from .constants import INDICATORS_WEIGHTS
+from app.prioc.services.constants.constants import INDICATORS_WEIGHTS
 
 
 class HexEstimator:
@@ -42,8 +42,8 @@ class HexEstimator:
         """
 
         hexagons["weighted_sum"] = None
-        indicators_names = list(INDICATORS_WEIGHTS.json[service_name].keys())
-        ranks = INDICATORS_WEIGHTS.json[service_name]
+        indicators_names = list(INDICATORS_WEIGHTS[service_name].keys())
+        ranks = INDICATORS_WEIGHTS[service_name]
         n = len(ranks)
         weights = {}
         for indicator, rank in ranks.items():
@@ -74,7 +74,8 @@ class HexEstimator:
         Returns:
             gpd.GeoDataFrame: GeoDataFrame with clear and united clusters
         """
-
+        if len(clustered_hexagons["cluster"].unique()) == 1:
+            return clustered_hexagons
         grouped = gpd.GeoDataFrame()
         for cluster in list(clustered_hexagons.cluster.unique()):
             tmp_gdf = clustered_hexagons[clustered_hexagons.cluster == cluster]

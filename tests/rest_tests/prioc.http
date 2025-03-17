@@ -29,4 +29,12 @@ Content-Type: application/json
   ]
 }
 
+### GET FULL GRID GENERATED
+
+GET http://127.0.0.1:8000/hextech/hex_generator/generate_full/1
+
+### POST FULL GRID TO DB
+
+POST http://127.0.0.1:8000/hextech/hex_generator/generate_full_to_db/1
+
 ###

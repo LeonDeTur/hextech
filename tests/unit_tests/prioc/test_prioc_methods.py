@@ -6,7 +6,7 @@ from shapely.geometry import shape
 import geopandas as gpd
 
 from app.common import urban_api_handler, config
-from app.prioc.services.hex_api_service import hex_api_getter
+from app.prioc.services.hex_api_getter import hex_api_getter
 from app.prioc.services.hex_cleaner import hex_cleaner
 from app.prioc.services.hex_estimator import hex_estimator
 from app.prioc.services.territory_estimator import territory_estimator

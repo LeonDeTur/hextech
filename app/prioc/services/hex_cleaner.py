@@ -1,7 +1,7 @@
 import geopandas as gpd
 import pandas as pd
 
-from .constants import OBJECT_INDICATORS_MIN_VAL
+from app.prioc.services.constants.constants import OBJECT_INDICATORS_MIN_VAL
 
 
 class HexCleaner:
@@ -39,7 +39,7 @@ class HexCleaner:
             drop_list = drop_list + neighbours.index.to_list()
 
         drop_list = list(set(drop_list))
-        cleaned = hexagons[~hexagons.index.isin(drop_list)]
+        cleaned = hexagons[~hexagons.index.isin(drop_list)].copy()
         return cleaned
 
     @staticmethod
@@ -58,6 +58,7 @@ class HexCleaner:
             gpd.GeoDataFrame: cleaned hexes
         """
 
+        positive_objects["service_id"] = True
         if positive_objects.empty:
             return hexagons
         cleaned_hexes = gpd.sjoin(positive_objects, hexagons, how='right')
@@ -86,13 +87,11 @@ class HexCleaner:
         if isinstance(positive_services, gpd.GeoDataFrame):
             positive_services["is_service"] = 1
             check = territory.sjoin(positive_services)
-            print(check.columns)
             if "is_service" in list(check.columns):
-                return True
+                return False
         if isinstance(negative_services, gpd.GeoDataFrame):
             negative_services["is_service"] = 1
             check = territory.sjoin(negative_services)
-            print(check.columns)
             if "is_service" in list(check.columns):
                 return True
         return False
@@ -123,9 +122,11 @@ class HexCleaner:
                     return False
             return True
 
-        values = OBJECT_INDICATORS_MIN_VAL.json[object_name]
+        values = OBJECT_INDICATORS_MIN_VAL[object_name]
+        hexagons = hexagons.copy()
         hexagons["mask"] = hexagons.apply(clean_row, min_map=values, axis=1)
-        hexagons = hexagons[hexagons["mask"] > 0].drop("mask", axis=1)
+        hexagons = hexagons[hexagons["mask"] > 0]
+        hexagons.drop(columns="mask", inplace=True)
         return hexagons
 
 

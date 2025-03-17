@@ -1,6 +1,6 @@
 import geopandas as gpd
 
-from .constants import INDICATORS_WEIGHTS, OBJECT_INDICATORS_MIN_VAL
+from app.prioc.services.constants.constants import INDICATORS_WEIGHTS, OBJECT_INDICATORS_MIN_VAL
 
 
 class TerritoryEstimator:
@@ -28,23 +28,23 @@ class TerritoryEstimator:
                 indicator_name: str
         ) -> str:
             if actual < target:
-                return f"Слабый {indicator_name.lower()}"
+                return f"Слабый показатель: {indicator_name.lower()}"
             else:
-                return f"Хороший {indicator_name.lower()}"
+                return f"Хороший показатель: {indicator_name.lower()}"
 
         indicators = territory_hexagons.drop(columns=['geometry']).mean().to_dict()
 
         result_dict = {}
 
-        for key in INDICATORS_WEIGHTS.json.keys():
+        for key in INDICATORS_WEIGHTS.keys():
             result_dict[key] = {}
             interpretations = []
-            current_object_indicators_min_val = OBJECT_INDICATORS_MIN_VAL.json[key]
-            ranks = INDICATORS_WEIGHTS.json[key]
+            current_object_indicators_min_val = OBJECT_INDICATORS_MIN_VAL[key]
+            ranks = INDICATORS_WEIGHTS[key]
             n = len(ranks)
             total_score = 0
             for indicator, rank in ranks.items():
-                if ranks[indicator] > 3:
+                if ranks[indicator] < 3:
                     current_interpretation = await interpret_value(
                         actual=indicators[indicator],
                         target=current_object_indicators_min_val[indicator],
@@ -55,9 +55,7 @@ class TerritoryEstimator:
                 weight = (n - rank + 1) / denominator
                 score = (indicators[indicator] - current_object_indicators_min_val[indicator]) * weight
                 total_score += score
-            result_dict[key]["estimation"] = {
-                round(total_score, 2)
-            }
+            result_dict[key]["estimation"] = round(total_score, 2)
             result_dict[key]["interpretation"] = interpretations
 
         return result_dict
