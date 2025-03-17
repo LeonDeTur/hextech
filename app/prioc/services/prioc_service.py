@@ -4,10 +4,8 @@ import asyncio
 import geopandas as gpd
 from shapely.geometry import shape
 
-from app.indicators_savior.dto import IndicatorsDTO
 from app.prioc.dto.hexes_dto import HexesDTO
-from app.prioc.dto.territory_dto import TerritoryDTO
-from .hex_api_service import  hex_api_getter
+from .hex_api_getter import  hex_api_getter
 from .hex_cleaner import hex_cleaner
 from .hex_estimator import hex_estimator
 from .territory_estimator import territory_estimator
@@ -31,7 +29,8 @@ class PriocService:
             gpd.GeoDataFrame: Layer with calculated hexes values
         """
 
-        hexes = await hex_api_getter.get_hexes_with_indicators_by_territory()
+        regional_base_scenario = await hex_api_getter.get_regional_base_scenario(hex_params.territory_id)
+        hexes = await hex_api_getter.get_hexes_with_indicators_by_territory(regional_base_scenario)
         hexes_local_crs = hexes.estimate_utm_crs()
         hexes.to_crs(hexes_local_crs, inplace=True)
         positive_services_list = POSITIVE_SERVICE_CLEANING.get(hex_params.object_type)

@@ -279,5 +279,14 @@ class GeneratorApiService:
             }
         )
 
+    async def get_base_scenario_by_region(
+            self,
+            region_id: int
+    ) -> int:
+        """
+        Function extracts region base scenario from
+        """
+
+
 
 generator_api_service = GeneratorApiService()
