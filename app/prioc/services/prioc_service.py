@@ -34,7 +34,7 @@ class PriocService:
         hexes_local_crs = hexes.estimate_utm_crs()
         hexes.to_crs(hexes_local_crs, inplace=True)
         positive_services_list = POSITIVE_SERVICE_CLEANING.get(hex_params.object_type)
-        cleaned_hexes = hexes
+        cleaned_hexes = hexes.copy()
         if positive_services_list:
             positive_services = await hex_api_getter.get_positive_service_by_territory_id(
                 gpd.GeoDataFrame(geometry=[hexes.union_all()], crs=hexes_local_crs).to_crs(4326).to_geo_dict()["features"][0]["geometry"],
@@ -160,6 +160,63 @@ class PriocService:
                 del territory_estimation[key]
 
         return territory_estimation
+
+
+    @staticmethod
+    async def get_hexes_for_object_from_gdf(
+            hexes: gpd.GeoDataFrame,
+            territory_id: int,
+            object_type: str
+    ) -> gpd.GeoDataFrame:
+        """
+        Generate hexes with estimation for object use
+
+        Args:
+            hexes (gpd.GeoDataFrame): Hexes query parameters
+            territory_id (int): Region territory id
+            object_type (str): Object type as str
+        Returns:
+            gpd.GeoDataFrame: Layer with calculated hexes values
+        """
+
+        hexes_local_crs = hexes.estimate_utm_crs()
+        hexes.to_crs(hexes_local_crs, inplace=True)
+        positive_services_list = POSITIVE_SERVICE_CLEANING.get(object_type)
+        cleaned_hexes = hexes.copy()
+        if positive_services_list:
+            positive_services = await hex_api_getter.get_positive_service_by_territory_id(
+                gpd.GeoDataFrame(geometry=[hexes.union_all()], crs=hexes_local_crs).to_crs(4326).to_geo_dict()["features"][0]["geometry"],
+            )
+            if not positive_services.empty:
+                positive_services.to_crs(hexes_local_crs, inplace=True)
+                cleaned_hexes = await hex_cleaner.positive_clean(
+                    cleaned_hexes,
+                    positive_services
+                )
+        negative_services_list = NEGATIVE_SERVICE_CLEANING.get(object_type)
+        if negative_services_list:
+            negative_services = await hex_api_getter.get_negative_service_by_territory_id(
+                territory_id,
+                negative_services_list
+            )
+            if not negative_services.empty:
+                negative_services.to_crs(hexes_local_crs, inplace=True)
+                cleaned_hexes = await hex_cleaner.negative_clean(
+                    hexes,
+                    negative_services
+                )
+        cleaned_hexes = await asyncio.to_thread(
+            hex_cleaner.clean_by_min_object_val,
+            hexagons=cleaned_hexes,
+            object_name=object_type,
+        )
+
+        estimated_hexes = await hex_estimator.weight_hexes(
+            cleaned_hexes,
+            object_type
+        )
+
+        return estimated_hexes
 
 
 prioc_service = PriocService()
