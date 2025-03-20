@@ -109,10 +109,11 @@ class PriocService:
             dict: Dictionary with calculated territory values
         """
 
-        if territory:
+        if isinstance(territory, dict):
             territory_gdf = gpd.GeoDataFrame(geometry=[shape(territory)], crs=4326)
         else:
-            territory_gdf = gpd.GeoDataFrame(geometry=[shape(territory.__dict__)], crs=4326)
+            territory = territory.__dict__
+            territory_gdf = gpd.GeoDataFrame(geometry=[shape(territory)], crs=4326)
         territory_local_crs = territory_gdf.estimate_utm_crs()
         territory_gdf.to_crs(territory_local_crs, inplace=True)
         base_scenario_id = await hex_api_getter.get_regional_base_scenario(territory_id)
@@ -135,8 +136,6 @@ class PriocService:
                 )
                 if not positive_services.empty:
                     positive_services.to_crs(territory_local_crs, inplace=True)
-                else:
-                    positive_services = None
             else:
                 positive_services = None
             if negative_services_ids:
@@ -146,8 +145,6 @@ class PriocService:
                 )
                 if not negative_services.empty:
                     negative_services.to_crs(territory_local_crs, inplace=True)
-                else:
-                    negative_services = None
             else:
                 negative_services = None
 
