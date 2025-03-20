@@ -10,7 +10,9 @@ from tqdm import tqdm
 from .generator_api_service import generator_api_service
 from .grid_generator import grid_generator
 from .potential_estimator import potential_estimator
+from .constants.constants import prioc_objects_types
 from app.common import http_exception, params_validator, tasks_api_handler
+from app.prioc.services.prioc_service import prioc_service
 
 
 class GridGeneratorService:
@@ -204,7 +206,7 @@ class GridGeneratorService:
             territory_id: int
     ) -> dict:
         """
-        Function rights hexagons indicators to db
+        Function wrights hexagons indicators to db
         """
 
         regional_scenario = await generator_api_service.get_regional_base_scenario(territory_id)
@@ -212,6 +214,12 @@ class GridGeneratorService:
         grid = gpd.GeoDataFrame.from_features(hexagons_geojson, crs=4326)
         grid_with_indicators = await self.calculate_grid_indicators(grid, territory_id)
         bounded_hexagons = await potential_estimator.estimate_potentials(grid_with_indicators)
+        for i in prioc_objects_types:
+            bounded_hexagons = prioc_service.get_hexes_for_object_from_gdf(
+                hexes=bounded_hexagons,
+                territory_id=territory_id,
+                object_type=i
+            )
         full_map = await generator_api_service.extract_all_indicators()
         mapped_name_id = {}
         for item in full_map:
