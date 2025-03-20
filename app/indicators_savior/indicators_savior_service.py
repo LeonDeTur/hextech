@@ -272,31 +272,32 @@ class IndicatorsSaviorService:
         # ]
         # await asyncio.gather(*extract_list)
         await indicators_savior_api_service.save_net_indicators(
-                territory=territory,
-                region_id=territory_id,
-                project_scenario_id=save_params.scenario_id
-            )
-        await indicators_savior_api_service.save_eco_frame_estimation(
-                territory=territory_data["geometry"],
-                region_id=territory_id,
-                project_scenario_id=save_params.scenario_id,
-            )
+            territory=territory,
+            region_id=territory_id,
+            project_scenario_id=save_params.scenario_id
+        )
         await self.save_all_landuse(save_params.scenario_id)
         await self.save_prioc_evaluations(
                 scenario_id=save_params.scenario_id,
                 territory_id=territory_id,
                 territory=territory_data["geometry"],
             )
-        await self.save_recultivation(
-                area=territory_data["geometry"],
-                base_scenario_id=base_scenario,
-                target_scenario_id=save_params.scenario_id
-            )
+        if save_params.scenario_id != base_scenario.id:
+            await self.save_recultivation(
+                    area=territory_data["geometry"],
+                    base_scenario_id=base_scenario,
+                    target_scenario_id=save_params.scenario_id
+                )
         await self.save_potential(
             scenario_id=save_params.scenario_id,
             territory_id=territory_id,
             territory=territory_geojson
             )
+        await indicators_savior_api_service.save_eco_frame_estimation(
+            territory=territory_data["geometry"],
+            region_id=territory_id,
+            project_scenario_id=save_params.scenario_id,
+        )
         logger.info(f"Finished saving all indicators with params {save_params.__dict__}")
         # await self.save_potential(
         #     scenario_id=save_params.scenario_id,
