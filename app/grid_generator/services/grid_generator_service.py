@@ -108,7 +108,10 @@ class GridGeneratorService:
         territory_data = await generator_api_service.get_territory_data(territory_id)
         territory = gpd.GeoDataFrame(geometry=[shape(territory_data["geometry"])], crs=4326)
         logger.info(f"Got geometry for territory with id {territory_id}, starting grid generation")
-        grid = await grid_generator.generate_hexagonal_grid(territory)
+        if territory_id in [3268, 3138, 16141]:
+            grid = await grid_generator.generate_hexagonal_grid(territory, size=3)
+        else:
+            grid = await grid_generator.generate_hexagonal_grid(territory)
         logger.info(f"Finished grid generation{territory_id}, starting grid clarification")
         if pure:
             water = await self.get_cleaning_gdf(territory_id, [45, 55])
@@ -220,12 +223,19 @@ class GridGeneratorService:
                 territory_id=territory_id,
                 object_type=i
             )
-            bounded_hexagons = pd.merge([bounded_hexagons, current_object_hexes["", i]], on="hexagon_id")
+            bounded_hexagons = pd.merge(
+                bounded_hexagons,
+                current_object_hexes[["hexagon_id", "weighted_sum"]],
+                on="hexagon_id", how="outer"
+            )
+            bounded_hexagons.rename(columns={"weighted_sum": i}, inplace=True)
         full_map = await generator_api_service.extract_all_indicators()
         mapped_name_id = {}
         for item in full_map:
             if item["name_full"] in bounded_hexagons.columns:
                 mapped_name_id[item["name_full"]] = item["indicator_id"]
+            elif item["short_name"] in bounded_hexagons.columns:
+                mapped_name_id[item["short_name"]] = item["indicator_id"]
         df_to_put = bounded_hexagons.drop(columns=["geometry", "properties"])
         columns_to_iter = list(df_to_put.drop(columns="hexagon_id").columns)
         extract_list = []
