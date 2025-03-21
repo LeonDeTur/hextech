@@ -215,11 +215,12 @@ class GridGeneratorService:
         grid_with_indicators = await self.calculate_grid_indicators(grid, territory_id)
         bounded_hexagons = await potential_estimator.estimate_potentials(grid_with_indicators)
         for i in prioc_objects_types:
-            bounded_hexagons = prioc_service.get_hexes_for_object_from_gdf(
+            current_object_hexes = await prioc_service.get_hexes_for_object_from_gdf(
                 hexes=bounded_hexagons,
                 territory_id=territory_id,
                 object_type=i
             )
+            bounded_hexagons = pd.merge([bounded_hexagons, current_object_hexes["", i]], on="hexagon_id")
         full_map = await generator_api_service.extract_all_indicators()
         mapped_name_id = {}
         for item in full_map:

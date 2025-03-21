@@ -258,7 +258,7 @@ class IndicatorsSaviorService:
         #         scenario_id=save_params.scenario_id,
         #         territory_id=territory_id,
         #         territory=territory_data["geometry"],
-        #     ),s
+        #     ),
         #     self.save_recultivation(
         #         area=territory_data["geometry"],
         #         base_scenario_id=base_scenario,
@@ -299,11 +299,11 @@ class IndicatorsSaviorService:
             project_scenario_id=save_params.scenario_id,
         )
         logger.info(f"Finished saving all indicators with params {save_params.__dict__}")
-        # await self.save_potential(
-        #     scenario_id=save_params.scenario_id,
-        #     territory_id=territory_id,
-        #     territory=territory_geojson
-        # )
+        await self.save_potential(
+            scenario_id=save_params.scenario_id,
+            territory_id=territory_id,
+            territory=territory_geojson
+        )
         return {"msg": "Successfully saved all indicators"}
 
 
