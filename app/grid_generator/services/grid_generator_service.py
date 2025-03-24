@@ -228,31 +228,41 @@ class GridGeneratorService:
                 current_object_hexes[["hexagon_id", "weighted_sum"]],
                 on="hexagon_id", how="outer"
             )
-            bounded_hexagons.rename(columns={"weighted_sum": i}, inplace=True)
+            if i == "Пром объект":
+                bounded_hexagons.rename(columns={"weighted_sum": "Промышленная зона"}, inplace=True)
+            elif i == "Логистическо-складской комплекс":
+                bounded_hexagons.rename(columns={"weighted_sum": "Логистический, складской комплекс"}, inplace=True)
+            elif i == "Кампус университетский":
+                bounded_hexagons.rename(columns={"weighted_sum": "Университетский кампус"}, inplace=True)
+            elif i == "Тур база":
+                bounded_hexagons.rename(columns={"weighted_sum": "Туристическая база"}, inplace=True)
+            else:
+                bounded_hexagons.rename(columns={"weighted_sum": i}, inplace=True)
         full_map = await generator_api_service.extract_all_indicators()
         mapped_name_id = {}
         for item in full_map:
             if item["name_full"] in bounded_hexagons.columns:
                 mapped_name_id[item["name_full"]] = item["indicator_id"]
-            elif item["short_name"] in bounded_hexagons.columns:
-                mapped_name_id[item["short_name"]] = item["indicator_id"]
+            elif item["name_short"] in bounded_hexagons.columns:
+                mapped_name_id[item["name_short"]] = item["indicator_id"]
         df_to_put = bounded_hexagons.drop(columns=["geometry", "properties"])
         columns_to_iter = list(df_to_put.drop(columns="hexagon_id").columns)
         extract_list = []
         for index, row in tqdm(df_to_put.iterrows(), desc="Uploading hexagons to db"):
             for column in columns_to_iter:
-                extract_list.append(
-                    {
-                    "indicator_id": int(mapped_name_id[column]),
-                    "scenario_id": regional_scenario,
-                    "territory_id": None,
-                    "hexagon_id": int(row["hexagon_id"]),
-                    "value": row[column],
-                    "comment": "--",
-                    "information_source": "hextech/grid_generator",
-                    "properties": {}
-                    }
-                )
+                if row[column] and not pd.isna(row[column]):
+                    extract_list.append(
+                        {
+                        "indicator_id": int(mapped_name_id[column]),
+                        "scenario_id": regional_scenario,
+                        "territory_id": None,
+                        "hexagon_id": int(row["hexagon_id"]),
+                        "value": row[column],
+                        "comment": "--",
+                        "information_source": "hextech/grid_generator",
+                        "properties": {}
+                        }
+                    )
 
         await generator_api_service.put_hexagon_data(extract_list)
 

@@ -1,13 +1,12 @@
 from loguru import logger
 
-from app.common import urban_api_handler, config, http_exception
+from app.common import urban_api_handler, http_exception, tasks_api_handler, config
 from app.common.api_handler.api_handler import (
     transport_frame_api_handler,
     townsnet_api_handler,
     eco_frame_api_handler,
     pop_frame_api_handler
 )
-from app.common import tasks_api_handler, config
 
 
 class GeneratorApiService:
