@@ -216,7 +216,7 @@ class IndicatorsSaviorService:
             None
         """
 
-        evaluations = await prioc_service.prioc_service.get_territory_estimation(
+        evaluations = await prioc_service.get_territory_estimation(
             territory=territory,
             territory_id=territory_id,
         )

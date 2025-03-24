@@ -109,7 +109,7 @@ class GridGeneratorService:
         territory = gpd.GeoDataFrame(geometry=[shape(territory_data["geometry"])], crs=4326)
         logger.info(f"Got geometry for territory with id {territory_id}, starting grid generation")
         if territory_id in [3268, 3138, 16141]:
-            grid = await grid_generator.generate_hexagonal_grid(territory, size=3)
+            grid = await grid_generator.generate_hexagonal_grid(territory, size=8)
         else:
             grid = await grid_generator.generate_hexagonal_grid(territory)
         logger.info(f"Finished grid generation{territory_id}, starting grid clarification")
