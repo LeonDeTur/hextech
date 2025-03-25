@@ -55,8 +55,13 @@ class HexApiService:
         """
 
         def expand_list(row: pd.Series) -> list[float]:
-            current_list = [row["indicators"]][0]
-            return [i["value"] for i in current_list if i["name_full"] in indicators_names]
+            current_list = row["indicators"]
+            return [
+                j if j else [0.0, 0.0, 0.0, 0.0, 0.0] for j in [
+                    i["value"] if i["name_full"] in indicators_names else 0.0 for i in current_list
+                ]
+            ]
+
 
         url = f"{self.scenarios_url}/{regional_scenario_id}/indicators_values/hexagons"
         response = await self.extractor.get(
