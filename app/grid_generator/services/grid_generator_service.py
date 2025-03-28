@@ -108,7 +108,10 @@ class GridGeneratorService:
         territory_data = await generator_api_service.get_territory_data(territory_id)
         territory = gpd.GeoDataFrame(geometry=[shape(territory_data["geometry"])], crs=4326)
         logger.info(f"Got geometry for territory with id {territory_id}, starting grid generation")
-        grid = await grid_generator.generate_hexagonal_grid(territory)
+        if territory_id in [3268, 3138, 16141]:
+            grid = await grid_generator.generate_hexagonal_grid(territory, size=8)
+        else:
+            grid = await grid_generator.generate_hexagonal_grid(territory)
         logger.info(f"Finished grid generation{territory_id}, starting grid clarification")
         if pure:
             water = await self.get_cleaning_gdf(territory_id, [45, 55])
@@ -215,33 +218,52 @@ class GridGeneratorService:
         grid_with_indicators = await self.calculate_grid_indicators(grid, territory_id)
         bounded_hexagons = await potential_estimator.estimate_potentials(grid_with_indicators)
         for i in prioc_objects_types:
-            bounded_hexagons = prioc_service.get_hexes_for_object_from_gdf(
+            current_object_hexes = await prioc_service.get_hexes_for_object_from_gdf(
                 hexes=bounded_hexagons,
                 territory_id=territory_id,
                 object_type=i
             )
+            bounded_hexagons = pd.merge(
+                bounded_hexagons,
+                current_object_hexes[["hexagon_id", "weighted_sum"]],
+                on="hexagon_id", how="outer"
+            )
+            if i == "Пром объект":
+                bounded_hexagons.rename(columns={"weighted_sum": "Промышленная зона"}, inplace=True)
+            elif i == "Логистическо-складской комплекс":
+                bounded_hexagons.rename(columns={"weighted_sum": "Логистический, складской комплекс"}, inplace=True)
+            elif i == "Кампус университетский":
+                bounded_hexagons.rename(columns={"weighted_sum": "Университетский кампус"}, inplace=True)
+            elif i == "Тур база":
+                bounded_hexagons.rename(columns={"weighted_sum": "Туристическая база"}, inplace=True)
+            else:
+                bounded_hexagons.rename(columns={"weighted_sum": i}, inplace=True)
         full_map = await generator_api_service.extract_all_indicators()
         mapped_name_id = {}
         for item in full_map:
             if item["name_full"] in bounded_hexagons.columns:
                 mapped_name_id[item["name_full"]] = item["indicator_id"]
+            elif item["name_short"] in bounded_hexagons.columns:
+                mapped_name_id[item["name_short"]] = item["indicator_id"]
+        bounded_hexagons.drop_duplicates("geometry", inplace=True)
         df_to_put = bounded_hexagons.drop(columns=["geometry", "properties"])
         columns_to_iter = list(df_to_put.drop(columns="hexagon_id").columns)
         extract_list = []
         for index, row in tqdm(df_to_put.iterrows(), desc="Uploading hexagons to db"):
             for column in columns_to_iter:
-                extract_list.append(
-                    {
-                    "indicator_id": int(mapped_name_id[column]),
-                    "scenario_id": regional_scenario,
-                    "territory_id": None,
-                    "hexagon_id": int(row["hexagon_id"]),
-                    "value": row[column],
-                    "comment": "--",
-                    "information_source": "hextech/grid_generator",
-                    "properties": {}
-                    }
-                )
+                if row[column] and not pd.isna(row[column]):
+                    extract_list.append(
+                        {
+                        "indicator_id": int(mapped_name_id[column]),
+                        "scenario_id": regional_scenario,
+                        "territory_id": None,
+                        "hexagon_id": int(row["hexagon_id"]),
+                        "value": row[column],
+                        "comment": "--",
+                        "information_source": "hextech/grid_generator",
+                        "properties": {}
+                        }
+                    )
 
         await generator_api_service.put_hexagon_data(extract_list)
 

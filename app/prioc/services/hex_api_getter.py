@@ -55,16 +55,23 @@ class HexApiService:
         """
 
         def expand_list(row: pd.Series) -> list[float]:
-            current_list = [row["indicators"]][0]
+            current_list = row["indicators"]
             return [i["value"] for i in current_list if i["name_full"] in indicators_names]
+
 
         url = f"{self.scenarios_url}/{regional_scenario_id}/indicators_values/hexagons"
         response = await self.extractor.get(
             extra_url=url,
         )
         gdf = gpd.GeoDataFrame.from_features(response, crs=4326)
-        gdf[indicators_names] = await asyncio.to_thread(gdf.apply, func=expand_list, axis=1, result_type="expand")
-        result = gdf.drop(columns=["indicators"])
+        df_records = await asyncio.to_thread(
+            gdf["indicators"].apply,
+            func=lambda x: {i["name_full"] : i["value"] if i else None for i in x if i},
+        )
+        indicators_df = pd.DataFrame.from_records(df_records)
+        keep_columns = ["geometry", "hexagon_id"] + indicators_names
+        result = pd.concat([gdf, indicators_df], axis=1)
+        result = result[keep_columns]
         return result
 
     async def get_positive_service_by_territory_id(

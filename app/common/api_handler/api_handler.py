@@ -1,3 +1,6 @@
+import asyncio
+import json
+
 import aiohttp
 from loguru import logger
 
@@ -86,6 +89,7 @@ class AsyncApiHandler:
 
         endpoint_url = self.base_url + extra_url
         async with aiohttp.ClientSession() as session:
+
             async with session.post(
                 url=endpoint_url,
                 headers=headers,
@@ -97,6 +101,7 @@ class AsyncApiHandler:
                     logger.info(
                         f"Posted data with url: {response.url} and status: {response.status}"
                     )
+                    await asyncio.sleep(0.1)
                     return await response.json()
                 logger.warning(
                     f"""
@@ -112,6 +117,14 @@ class AsyncApiHandler:
                     _input={"url": endpoint_url, "params": params},
                     _detail=additional_info
                 )
+                with open(f'{"_".join(extra_url.split("/"))}_{response.status}_error', "w", encoding="utf-8") as f:
+                    json.dump(
+                        {
+                            "error_info": additional_info,
+                            "body": data,
+                        },
+                        f
+                    )
                 logger.exception(e)
                 raise e
 
