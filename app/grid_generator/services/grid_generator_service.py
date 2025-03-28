@@ -245,6 +245,7 @@ class GridGeneratorService:
                 mapped_name_id[item["name_full"]] = item["indicator_id"]
             elif item["name_short"] in bounded_hexagons.columns:
                 mapped_name_id[item["name_short"]] = item["indicator_id"]
+        bounded_hexagons.drop_duplicates("geometry", inplace=True)
         df_to_put = bounded_hexagons.drop(columns=["geometry", "properties"])
         columns_to_iter = list(df_to_put.drop(columns="hexagon_id").columns)
         extract_list = []
