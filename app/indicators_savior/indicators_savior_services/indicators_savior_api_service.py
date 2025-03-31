@@ -123,7 +123,7 @@ class IndicatorsSaviorApiService:
                 data=json_territory,
             )
         ]
-        print("Saved all net indicators")
+        logger.info("Saved all net indicators to db")
         await asyncio.gather(*tasks)
 
     async def save_eco_frame_estimation(
@@ -177,7 +177,7 @@ class IndicatorsSaviorApiService:
                     data=put_data,
                 )
 
-        print("Saved ecoframe indicators")
+        logger.info("Saved ecoframe indicators")
 
     @staticmethod
     async def get_landuse_ids_names_map() -> dict:
@@ -452,13 +452,13 @@ class IndicatorsSaviorApiService:
             dict | list: Evaluated data
         """
 
-        logger.info(f"Started provision extraction for {len(json_data['features'])} territories")
+
         response = await townsnet_api_handler.post(
             extra_url=f"/provision/{territory_id}/get_evaluation",
             data=json_data,
             headers=self.headers
         )
-
+        logger.info("Social provision criteria evaluation received")
         return {"Социальное обеспечение": response[0]}
 
     async def get_engineering_evaluation(
@@ -481,6 +481,7 @@ class IndicatorsSaviorApiService:
             data=json_data,
             headers=self.headers
         )
+        logger.info("Engineering criteria evaluation received")
         return {"Обеспечение инженерной инфраструктурой": response[0]}
 
     @staticmethod
@@ -502,6 +503,7 @@ class IndicatorsSaviorApiService:
             extra_url=f"/{territory_id}/transport_criteria",
             data=json_data
         )
+        logger.info("Transport criteria evaluation received")
         return {"Транспортное обеспечение": response[0]}
 
     @staticmethod
@@ -525,6 +527,7 @@ class IndicatorsSaviorApiService:
             data=eco_feature_collection
         )
         result = [item["relative_mark"] for item in response]
+        logger.info("Ecological criteria evaluation received")
         return {"Экологическая ситуация": result[0]}
 
     async def get_population_evaluation(
@@ -548,6 +551,7 @@ class IndicatorsSaviorApiService:
             data=json_data,
             headers=self.headers
         )
+        logger.info("Population criteria evaluation received")
         return {"Население": response[0]}
 
     @staticmethod
