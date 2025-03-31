@@ -36,7 +36,12 @@ class IndicatorsSaviorService:
                 "information_source": "hextech/potential",
                 "properties": {}
             }
-            async_task_list.append(indicators_savior_api_service.put_indicator(first_to_put))
+            async_task_list.append(
+                indicators_savior_api_service.put_indicator(
+                    scenario_id=project_scenario_id,
+                    json_data=first_to_put
+                )
+            )
 
         await asyncio.gather(*async_task_list)
 
@@ -61,7 +66,12 @@ class IndicatorsSaviorService:
                 "information_source": "hextech/prioc",
                 "properties": {}
             }
-            async_task_list.append(indicators_savior_api_service.put_indicator(first_to_put))
+            async_task_list.append(
+                indicators_savior_api_service.put_indicator(
+                    scenario_id=project_scenario_id,
+                    json_data=first_to_put
+                )
+            )
 
         await asyncio.gather(*async_task_list)
 
@@ -179,9 +189,15 @@ class IndicatorsSaviorService:
             }
 
         task_list = [
-            indicators_savior_api_service.put_indicator(time_estimation),
-            indicators_savior_api_service.put_indicator(money_estimation)
-            ]
+            indicators_savior_api_service.put_indicator(
+                scenario_id=target_scenario_id,
+                json_data=time_estimation
+            ),
+            indicators_savior_api_service.put_indicator(
+                scenario_id=target_scenario_id,
+                json_data=money_estimation
+            )
+        ]
         await asyncio.gather(*task_list)
         logger.info("Saved all recultivation indicators")
 
@@ -213,7 +229,12 @@ class IndicatorsSaviorService:
                 "information_source": "landuse_det",
                 "properties": {}
             }
-            async_task_list.append(indicators_savior_api_service.put_indicator(first_to_put))
+            async_task_list.append(
+                indicators_savior_api_service.put_indicator(
+                    scenario_id=project_scenario_id,
+                    json_data=first_to_put
+                )
+            )
 
         await asyncio.gather(*async_task_list)
         logger.info("Saved all landuse indicators")

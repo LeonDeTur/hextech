@@ -48,14 +48,14 @@ class IndicatorsSaviorApiService:
 
     async def put_indicator(
             self,
+            scenario_id: int,
             json_data: dict
     ) -> None:
         """
         Function extracts put indicators query with params
-
         Args:
+            scenario_id (int): id of scenario
             json_data (dict): indicators_data_to_post
-
         Returns:
             None
         """
@@ -63,7 +63,7 @@ class IndicatorsSaviorApiService:
         async with aiohttp.ClientSession() as session:
             await urban_api_handler.put(
                 session=session,
-                extra_url="/api/v1/scenarios/indicators_values",
+                extra_url=f"/api/v1/scenarios/{scenario_id}/indicators_values",
                 headers=self.headers,
                 data=json_data
             )
@@ -153,7 +153,7 @@ class IndicatorsSaviorApiService:
             "territory_id": None,
             "hexagon_id": None,
             "value": eco_marks["relative_mark"],
-            "comment": eco_marks["relative_mark_description"],
+            "comment": eco_marks["relative_mark_description"][:2000],
             "information_source": "ecoframe",
             "properties": {}
         }
@@ -163,7 +163,7 @@ class IndicatorsSaviorApiService:
             "territory_id": None,
             "hexagon_id": None,
             "value": eco_marks["absolute_mark"],
-            "comment": eco_marks["absolute_mark_description"],
+            "comment": eco_marks["absolute_mark_description"][:2000],
             "information_source": "ecoframe",
             "properties": {}
         }
@@ -172,7 +172,7 @@ class IndicatorsSaviorApiService:
             async with aiohttp.ClientSession() as session:
                 await urban_api_handler.put(
                     session=session,
-                    extra_url=f"/api/v1/scenarios/indicators_values",
+                    extra_url=f"/api/v1/scenarios/{project_scenario_id}/indicators_values",
                     headers=self.headers,
                     data=put_data,
                 )
