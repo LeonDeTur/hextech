@@ -2,7 +2,7 @@ import asyncio
 
 import aiohttp
 
-from app.common.config import config
+from tqdm.asyncio import tqdm_asyncio
 
 
 class TasksApiHandler:
@@ -60,7 +60,7 @@ class TasksApiHandler:
                     return await func(session=session, headers=headers, **data_obj)
 
         tasks_list = [bound_func(data_obj) for data_obj in data]
-        result = await asyncio.gather(*tasks_list, return_exceptions=True)
+        result = await tqdm_asyncio.gather(*tasks_list)
         return result
 
 

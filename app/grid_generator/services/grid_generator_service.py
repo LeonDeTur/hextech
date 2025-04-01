@@ -5,7 +5,6 @@ import geopandas as gpd
 import pandas as pd
 from shapely.geometry import shape
 from loguru import logger
-from tqdm import tqdm
 
 from .generator_api_service import generator_api_service
 from .grid_generator import grid_generator
@@ -82,7 +81,7 @@ class GridGeneratorService:
     async def generate_grid(
             self,
             territory_id,
-            pure: bool = True
+            pure: bool = False
     ) -> gpd.GeoDataFrame:
         """
         Function generates hexagonal grid for provided territory.
@@ -249,7 +248,7 @@ class GridGeneratorService:
         df_to_put = bounded_hexagons.drop(columns=["geometry", "properties"])
         columns_to_iter = list(df_to_put.drop(columns="hexagon_id").columns)
         extract_list = []
-        for index, row in tqdm(df_to_put.iterrows(), desc="Uploading hexagons to db"):
+        for index, row in df_to_put.iterrows():
             for column in columns_to_iter:
                 if row[column] and not pd.isna(row[column]):
                     extract_list.append(
