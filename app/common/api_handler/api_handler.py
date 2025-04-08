@@ -98,9 +98,9 @@ class AsyncApiHandler:
                 timeout=int(config.get("GENERAL_TIMEOUT"))
             ) as response:
                 if response.status in (200, 201):
-                    logger.info(
-                        f"Posted data with url: {response.url} and status: {response.status}"
-                    )
+                    # logger.info(
+                    #     f"Posted data with url: {response.url} and status: {response.status}"
+                    # )
                     await asyncio.sleep(0.1)
                     return await response.json()
                 logger.warning(

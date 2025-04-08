@@ -1,5 +1,6 @@
 import sys
 from fastapi import FastAPI
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
@@ -17,6 +18,9 @@ logger.add(
     level="INFO",
     colorize=True
 )
+logger.add(
+    'hextech.log', colorize=False, backtrace=True, diagnose=True
+)
 
 app = FastAPI()
 
@@ -30,7 +34,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/logs")
+async def get_logs():
+    """
+    Get app logs
+    """
+
+    return FileResponse(
+        f"hextech.log",
+        media_type='application/octet-stream',
+        filename=f"hextech.log",
+    )
+
 app.include_router(prioc_router, prefix=config.get("FASTAPI_PREFIX"))
 app.include_router(grid_generator_router, prefix=config.get("FASTAPI_PREFIX"))
 app.include_router(limitations_router, prefix=config.get("FASTAPI_PREFIX"))
 app.include_router(indicators_savior_router, prefix=config.get("FASTAPI_PREFIX"))
+
+
+@app.get("/", include_in_schema=False)
+async def docs_redirect():
+    return RedirectResponse(url="/docs")

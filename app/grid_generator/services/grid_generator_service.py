@@ -5,7 +5,6 @@ import geopandas as gpd
 import pandas as pd
 from shapely.geometry import shape
 from loguru import logger
-from tqdm import tqdm
 
 from .generator_api_service import generator_api_service
 from .grid_generator import grid_generator
@@ -82,7 +81,7 @@ class GridGeneratorService:
     async def generate_grid(
             self,
             territory_id,
-            pure: bool = True
+            pure: bool = False
     ) -> gpd.GeoDataFrame:
         """
         Function generates hexagonal grid for provided territory.
@@ -249,9 +248,10 @@ class GridGeneratorService:
         df_to_put = bounded_hexagons.drop(columns=["geometry", "properties"])
         columns_to_iter = list(df_to_put.drop(columns="hexagon_id").columns)
         extract_list = []
-        for index, row in tqdm(df_to_put.iterrows(), desc="Uploading hexagons to db"):
+        failed_list = []
+        for index, row in df_to_put.iterrows():
             for column in columns_to_iter:
-                if row[column] and not pd.isna(row[column]):
+                if not pd.isna(row[column]):
                     extract_list.append(
                         {
                         "indicator_id": int(mapped_name_id[column]),
@@ -264,7 +264,33 @@ class GridGeneratorService:
                         "properties": {}
                         }
                     )
+                elif int(mapped_name_id[column]) in [197, 198, 199, 200, 201]:
+                    failed_object = {
+                        "indicator_id": int(mapped_name_id[column]),
+                        "scenario_id": regional_scenario,
+                        "territory_id": None,
+                        "hexagon_id": int(row["hexagon_id"]),
+                        "value": None,
+                        "comment": "--",
+                        "information_source": "hextech/grid_generator",
+                        "properties": {}
+                        }
+                    failed_list.append(failed_object)
+                else:
+                    failed_object = {
+                        "indicator_id": int(mapped_name_id[column]),
+                        "scenario_id": regional_scenario,
+                        "territory_id": None,
+                        "hexagon_id": int(row["hexagon_id"]),
+                        "value": None,
+                        "comment": "--",
+                        "information_source": "hextech/grid_generator",
+                        "properties": {}
+                        }
+                    failed_list.append(failed_object)
 
+        with open(f"failed_grid_indicators_list.json", "w") as f:
+            json.dump(failed_list, f)
         await generator_api_service.put_hexagon_data(extract_list)
 
         return {"msg": f"Successfully uploaded hexagons data for {territory_id}"}
