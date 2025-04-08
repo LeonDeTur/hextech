@@ -84,16 +84,16 @@ class IndicatorsSaviorService:
             indicators_comment: str="--"
     ):
         match indicators_name:
-            case "Инженерка":
+            case "Обеспечение инженерной инфраструктурой":
                 indicator_id = 204
                 indicator_source = "TownsNet/engineering"
             case "Население":
                 indicator_id = 197
                 indicator_source = "PopFrame"
-            case "Соцобеспеченность":
+            case "Социальное обеспечение":
                 indicator_id =  200
                 indicator_source = "Townsnet/provision"
-            case "Транспорт":
+            case "Транспортное обеспечение":
                 indicator_id = 198
                 indicator_source = "TransportFrame"
             case _ : raise http_exception(
@@ -118,7 +118,7 @@ class IndicatorsSaviorService:
             json_data=data_to_put
         )
 
-    async def save_potential(
+    async def save_potential_and_base_indicators(
             self,
             scenario_id: int,
             territory_id: int,
@@ -161,7 +161,8 @@ class IndicatorsSaviorService:
         for indicator in indicators_values:
             for key, value in indicator.items():
                 indicators_dict[key] = value
-                await self.save_indicator(scenario_id, key, value)
+                if key != "Экологическая ситуация":
+                    await self.save_indicator(scenario_id, key, value)
         result_dict = await potential_estimator.estimate_potentials_as_dict(indicators_dict)
         await self.post_potentials(result_dict, scenario_id)
         logger.info("Saved all potential indicators")
@@ -304,11 +305,6 @@ class IndicatorsSaviorService:
         base_scenario = await indicators_savior_api_service.get_base_scenario_by_project(save_params.project_id)
 
         extract_list = [
-            indicators_savior_api_service.save_net_indicators(
-                territory=territory,
-                region_id=territory_id,
-                project_scenario_id=save_params.scenario_id
-            ),
             indicators_savior_api_service.save_eco_frame_estimation(
                 territory=territory_data["geometry"],
                 region_id=territory_id,
@@ -325,13 +321,18 @@ class IndicatorsSaviorService:
                 base_scenario_id=base_scenario,
                 target_scenario_id=save_params.scenario_id
             ),
-            self.save_potential(
+            self.save_potential_and_base_indicators(
             scenario_id=save_params.scenario_id,
             territory_id=territory_id,
             territory=territory_geojson
             )
         ]
         await asyncio.gather(*extract_list)
+        await indicators_savior_api_service.save_net_indicators(
+                territory=territory,
+                region_id=territory_id,
+                project_scenario_id=save_params.scenario_id
+            )
         logger.info(f"Finished saving all indicators with params {save_params.__dict__}")
         return {"msg": "Successfully saved all indicators"}
 
