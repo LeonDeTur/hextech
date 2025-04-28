@@ -4,6 +4,7 @@ import json
 import aiohttp
 import geopandas as gpd
 import pandas as pd
+from fastapi.exceptions import HTTPException
 from loguru import logger
 
 from app.common import config
@@ -220,7 +221,7 @@ class IndicatorsSaviorApiService:
         )
         return response
 
-    async def get_project_data(self, project_id: int) -> list | dict:
+    async def get_project_data(self, project_id: int) -> list | dict | None:
         """
         Function extracts project data for given project id
 
@@ -230,11 +231,26 @@ class IndicatorsSaviorApiService:
             dict with project data
         """
 
-        response = await urban_api_handler.get(
-            extra_url=f"/api/v1/projects/{project_id}/territory",
-            headers=self.headers
-        )
-        return response
+        for i in range(int(config.get("MAX_RETRIES")) + 1):
+            try:
+                response = await urban_api_handler.get(
+                    extra_url=f"/api/v1/projects/{project_id}/territory",
+                    headers=self.headers
+                )
+                return response
+            except HTTPException as e:
+                if i < int(config.get("MAX_RETRIES")):
+                    if e.status_code == 404:
+                        logger.warning(f"Project with id {project_id} not found, retry attempt {i+1} in  10 seconds")
+                        await asyncio.sleep(10)
+                        continue
+                else:
+                    raise e
+            except Exception as e:
+                logger.error(e)
+                raise e
+
+        return None
 
     async def get_recultivation_marks(
         self,

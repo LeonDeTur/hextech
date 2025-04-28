@@ -81,7 +81,7 @@ class IndicatorsSaviorService:
             project_scenario_id: int,
             indicators_name: str,
             indicators_value: int | float,
-            indicators_comment: str="--"
+            indicators_comment: str = "--"
     ):
         match indicators_name:
             case "Обеспечение инженерной инфраструктурой":
@@ -91,17 +91,18 @@ class IndicatorsSaviorService:
                 indicator_id = 197
                 indicator_source = "PopFrame"
             case "Социальное обеспечение":
-                indicator_id =  200
+                indicator_id = 200
                 indicator_source = "Townsnet/provision"
             case "Транспортное обеспечение":
                 indicator_id = 198
                 indicator_source = "TransportFrame"
-            case _ : raise http_exception(
-                500,
-                msg="Unknown source to save",
-                _input= indicators_name,
-                _detail={}
-            )
+            case _:
+                raise http_exception(
+                    500,
+                    msg="Unknown source to save",
+                    _input=indicators_name,
+                    _detail={}
+                )
 
         data_to_put = {
             "indicator_id": indicator_id,
@@ -202,15 +203,15 @@ class IndicatorsSaviorService:
         }
 
         money_estimation = {
-                "indicator_id": 298,
-                "scenario_id": target_scenario_id,
-                "territory_id": None,
-                "hexagon_id": None,
-                "value": recultivation_data["data"]["recultivation"]["total"]["costOfWork"],
-                "comment": None,
-                "information_source": "Redevelopment Generation",
-                "properties": {}
-            }
+            "indicator_id": 298,
+            "scenario_id": target_scenario_id,
+            "territory_id": None,
+            "hexagon_id": None,
+            "value": recultivation_data["data"]["recultivation"]["total"]["costOfWork"],
+            "comment": None,
+            "information_source": "Redevelopment Generation",
+            "properties": {}
+        }
 
         task_list = [
             indicators_savior_api_service.put_indicator(
@@ -322,20 +323,19 @@ class IndicatorsSaviorService:
                 target_scenario_id=save_params.scenario_id
             ),
             self.save_potential_and_base_indicators(
-            scenario_id=save_params.scenario_id,
-            territory_id=territory_id,
-            territory=territory_geojson
+                scenario_id=save_params.scenario_id,
+                territory_id=territory_id,
+                territory=territory_geojson
             )
         ]
         await asyncio.gather(*extract_list)
         await indicators_savior_api_service.save_net_indicators(
-                territory=territory,
-                region_id=territory_id,
-                project_scenario_id=save_params.scenario_id
-            )
+            territory=territory,
+            region_id=territory_id,
+            project_scenario_id=save_params.scenario_id
+        )
         logger.info(f"Finished saving all indicators with params {save_params.__dict__}")
         return {"msg": "Successfully saved all indicators"}
-
 
 
 indicators_savior_service = IndicatorsSaviorService()
