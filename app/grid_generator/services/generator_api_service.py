@@ -263,12 +263,14 @@ class GeneratorApiService:
     ) -> dict | list:
 
         response = await self.urban_extractor.get(
-            extra_url=f"/api/v1/projects?only_own=false&is_regional=true&ordering=asc&page=1&page_size=1000",
-            params={}
+            extra_url=f"/api/v1/scenarios",
+            params={
+                "territory_id": territory_id,
+                "is_based": "true",
+            }
         )
-        for i in response["results"]:
-            if i["territory"]["id"] == territory_id:
-                return i["base_scenario"]["id"]
+        if response:
+            return response[0]["scenario_id"]
         raise http_exception(
             status_code=404,
             msg="No regional base scenario found",
