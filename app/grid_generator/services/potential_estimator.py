@@ -3,7 +3,7 @@ from collections import ChainMap
 import geopandas as gpd
 from loguru import logger
 
-from .constants import profiles
+from .constants import profiles, profile_goals
 
 
 class PotentialEstimator:
@@ -47,6 +47,24 @@ class PotentialEstimator:
         }
 
         return result
+
+    @staticmethod
+    async def estimate_potentials_weights(potential_min_values: dict) -> dict[str, dict[str, float]]:
+        """
+        Function estimates potential weights for territory based on indicators values
+        Args:
+            potential_min_values: dictionary of indicators values with min values
+        Returns:
+            dict[str, float]: estimated weight value for each potential
+        """
+
+        weights = {}
+        for profile in profiles.keys():
+            for indicator_name in indicators_names := profiles[profile].keys():
+                indicator_weight = profiles[profile][indicator_name] / sum([profiles[profile][i] for i in indicators_names])
+                weights[profile] = {indicator_name: indicator_weight}
+
+        return weights
 
     async def estimate_potentials(
             self,

@@ -6,6 +6,13 @@ with open(
 ) as profiles_file:
     profiles = json.load(profiles_file)
 
+with open(
+        "app/grid_generator/services/constants/profile_goals.json",
+        encoding="utf-8"
+) as profile_goals_file:
+    profile_goals = json.load(profile_goals_file)
+
+
 prioc_objects_types = [
         "Медицинский комплекс",
         "Бизнес-кластер",
