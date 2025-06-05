@@ -7,10 +7,10 @@ with open(
     profiles = json.load(profiles_file)
 
 with open(
-        "app/grid_generator/services/constants/profile_goals.json",
+        "app/grid_generator/services/constants/profile_efficiency.json",
         encoding="utf-8"
-) as profile_goals_file:
-    profile_goals = json.load(profile_goals_file)
+) as profile_efficiency_file:
+    profile_efficiency = json.load(profile_efficiency_file)
 
 
 prioc_objects_types = [

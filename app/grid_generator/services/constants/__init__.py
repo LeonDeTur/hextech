@@ -1,1 +1,1 @@
-from .constants import profiles, profile_goals
+from .constants import profiles, profile_efficiency
