@@ -291,7 +291,7 @@ class GridGeneratorService:
 
         with open(f"failed_grid_indicators_list.json", "w") as f:
             json.dump(failed_list, f)
-        await generator_api_service.put_hexagon_data(extract_list)
+        await generator_api_service.put_hexagon_data(extract_list, regional_scenario)
 
         return {"msg": f"Successfully uploaded hexagons data for {territory_id}"}
 

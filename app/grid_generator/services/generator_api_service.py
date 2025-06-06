@@ -243,10 +243,11 @@ class GeneratorApiService:
 
     async def put_hexagon_data(
             self,
-            data_list: list[dict]
+            data_list: list[dict],
+            scenario_id: int
     ) -> None:
 
-        extra_url = f"{self.scenarios}/indicators_values"
+        extra_url = f"{self.scenarios}/{scenario_id}/indicators_values"
         list_to_extract = [{"extra_url": extra_url, "data": hex_data} for hex_data in data_list]
         for i in range(0, len(list_to_extract), self.max_async_extractions):
             chunk = list_to_extract[i:i + self.max_async_extractions]

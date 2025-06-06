@@ -60,17 +60,15 @@ class PotentialEstimator:
 
         weights = {}
         for profile in profiles.keys():
-            for indicator_name in (indicators_names:=profiles[profile]["Критерии"].keys()):
-                try:
-                    indicator_weight = profiles[profile]["Критерии"][indicator_name] / sum([profiles[profile]["Критерии"][i] for i in indicators_names])
-                    weights[profile] = {
-                        indicator_name: {
-                            "weight": indicator_weight,
-                            "min_value": potential_min_values[profile]["Критерии"][indicator_name]
-                        }
-                    }
-                except Exception as e:
-                    print(e.__str__())
+            try:
+                weights[profile] = {
+                    indicator_name: {
+                        "weight": profiles[profile]["Критерии"][indicator_name] / sum([profiles[profile]["Критерии"][i] for i in profiles[profile]["Критерии"].keys()]),
+                        "min_value": potential_min_values[profile]["Критерии"][indicator_name]
+                    } for indicator_name in profiles[profile]["Критерии"].keys()
+                }
+            except Exception as e:
+                print(e.__str__())
 
         return weights
 
@@ -95,7 +93,7 @@ class PotentialEstimator:
         for key, value in profiles_weights.items():
             estimation = sum(
                 [
-                    (i["min_value"] - indicators_values[i]) * i["weight"] for i in value.keys()
+                    (value[i]["min_value"] - indicators_values[i]) * value[i]["weight"] for i in value.keys()
                 ]
             )
             result[key] = estimation
