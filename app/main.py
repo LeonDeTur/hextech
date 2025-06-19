@@ -46,7 +46,7 @@ async def get_logs():
     return FileResponse(
         ".log",
         media_type='application/octet-stream',
-        filename=f"hextech.log",
+        filename=f"Hextech.log",
     )
 
 app.include_router(prioc_router, prefix=config.get("FASTAPI_PREFIX"))
