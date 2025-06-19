@@ -1,3 +1,4 @@
+import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, BackgroundTasks
@@ -22,6 +23,7 @@ async def save_all_indicators_to_db(
     logger.info(f"""Started evaluating indicators with scenario id {save_params.project_id} 
     and scenario id {save_params.scenario_id}""")
 
+    await asyncio.sleep(30)
     if save_params.background:
         logger.info(f"Started background tasks for indicators with scenario params {save_params.__dict__}")
         background_tasks.add_task(indicators_savior_service.save_all_indicators, save_params)
