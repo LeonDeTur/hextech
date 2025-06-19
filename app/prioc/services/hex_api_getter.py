@@ -155,16 +155,13 @@ class HexApiService:
         """
 
         response = await urban_api_handler.get(
-            extra_url="/api/v1/projects",
+            extra_url="/api/v1/scenarios",
             params={
-                "only_own": "false",
-                "is_regional": "true",
                 "territory_id": territory_id,
-                "page": 1,
-                "page_size": 1
+                "is_based": "true"
             }
         )
-        return response["results"][0]["base_scenario"]["id"]
+        return response[0]["scenario_id"]
 
 
 hex_api_getter = HexApiService()

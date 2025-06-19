@@ -19,10 +19,13 @@ logger.add(
     colorize=True
 )
 logger.add(
-    'hextech.log', colorize=False, backtrace=True, diagnose=True
+    ".log", colorize=False, backtrace=True, diagnose=True
 )
 
-app = FastAPI()
+app = FastAPI(
+    title="hextech",
+    description="API for spatial hexagonal analyses"
+)
 
 origins = ["*"]
 
@@ -41,7 +44,7 @@ async def get_logs():
     """
 
     return FileResponse(
-        f"hextech.log",
+        ".log",
         media_type='application/octet-stream',
         filename=f"hextech.log",
     )
