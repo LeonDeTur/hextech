@@ -158,7 +158,7 @@ class GeneratorApiService:
 
         eco_feature_collection = {"feature_collection": json_data}
         response = await self.eco_frame_extractor.post(
-            extra_url=f"/ecodonut/{territory_id}/mark",
+            extra_url=f"/api/v1/ecodonut/{territory_id}/mark",
             data=eco_feature_collection
         )
         result = [item["relative_mark"] for item in response]
@@ -243,10 +243,11 @@ class GeneratorApiService:
 
     async def put_hexagon_data(
             self,
-            data_list: list[dict]
+            data_list: list[dict],
+            scenario_id: int
     ) -> None:
 
-        extra_url = f"{self.scenarios}/indicators_values"
+        extra_url = f"{self.scenarios}/{scenario_id}/indicators_values"
         list_to_extract = [{"extra_url": extra_url, "data": hex_data} for hex_data in data_list]
         for i in range(0, len(list_to_extract), self.max_async_extractions):
             chunk = list_to_extract[i:i + self.max_async_extractions]
@@ -263,29 +264,32 @@ class GeneratorApiService:
     ) -> dict | list:
 
         response = await self.urban_extractor.get(
-            extra_url=f"/api/v1/projects?only_own=false&is_regional=true&ordering=asc&page=1&page_size=1000",
-            params={}
+            extra_url=f"/api/v1/scenarios",
+            params={
+                "territory_id": territory_id,
+                "is_based": "true",
+            }
         )
-        for i in response["results"]:
-            if i["territory"]["id"] == territory_id:
-                return i["base_scenario"]["id"]
+        if response:
+            try:
+                return response[0]["scenario_id"]
+            except Exception as e:
+              raise http_exception(
+                  500,
+                  "Error during extracting scenario id",
+                  _input=response,
+                  _detail={
+                      "error": e.__str__()
+                  }
+              )
         raise http_exception(
             status_code=404,
             msg="No regional base scenario found",
             _input=territory_id,
             _detail={
-                "availabled_project_info": response
+                "available_scenario_info": response
             }
         )
-
-    async def get_base_scenario_by_region(
-            self,
-            region_id: int
-    ) -> int:
-        """
-        Function extracts region base scenario from
-        """
-
 
 
 generator_api_service = GeneratorApiService()
