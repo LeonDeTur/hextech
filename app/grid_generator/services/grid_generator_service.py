@@ -138,12 +138,13 @@ class GridGeneratorService:
             grid.to_crs(4326, inplace=True)
         feature_collection_grid = json.loads(grid.to_json())
 
-        if territory_id not in await params_validator.extract_current_regions():
+        available_regions = await params_validator.extract_current_regions()
+        if territory_id not in available_regions:
             raise http_exception(
                 400,
-                msg="Territory IDs except 1 are not implemented in connected apies",
+                msg="Hexagonal grid generation is not implemented for this territory",
                 _input=territory_id,
-                _detail="Ask 507 for further information"
+                _detail={"available_territories": available_regions}
             )
 
         functions_to_extract = [
@@ -190,12 +191,13 @@ class GridGeneratorService:
             dict: The generated hexagonal grid in geojson format or dict with additional information.
         """
 
-        if territory_id not in await params_validator.extract_current_regions():
+        available_regions = await params_validator.extract_current_regions()
+        if territory_id not in available_regions:
             raise http_exception(
                 400,
-                msg="No territories supported accept LO with id=1",
+                msg="Hexagonal grid generation is not implemented for this territory",
                 _input=f"{territory_id}",
-                _detail="Just wait while 507 will start refactoring or their api dies finally..."
+                _detail={"available_territories": available_regions}
             )
 
         grid = await self.generate_grid(territory_id)
